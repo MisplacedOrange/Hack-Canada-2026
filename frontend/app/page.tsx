@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useAuth } from "./auth-context"
 
 const OpportunityMap = dynamic(() => import("@/components/opportunity-map"), { ssr: false, loading: () => <div className="flex h-[380px] items-center justify-center rounded-xl bg-[#F9F6F2]"><p className="text-sm text-[#999]">Loading map…</p></div> })
@@ -36,18 +36,73 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000"
 
 const CAUSE_OPTIONS = ["", "environment", "education", "healthcare", "community", "animal-care", "arts-culture"]
 
-const CAUSE_COLORS: Record<string, string> = {
-  environment: "bg-emerald-100 text-emerald-700",
-  education: "bg-blue-100 text-blue-700",
-  healthcare: "bg-red-100 text-red-700",
-  community: "bg-yellow-100 text-yellow-700",
-  "animal-care": "bg-purple-100 text-purple-700",
-  "arts-culture": "bg-pink-100 text-pink-700",
+const CAUSE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
+  environment: { bg: "bg-emerald-100", text: "text-emerald-700", dot: "#059669" },
+  education: { bg: "bg-blue-100", text: "text-blue-700", dot: "#2563eb" },
+  healthcare: { bg: "bg-red-100", text: "text-red-700", dot: "#dc2626" },
+  community: { bg: "bg-yellow-100", text: "text-yellow-700", dot: "#ca8a04" },
+  "animal-care": { bg: "bg-purple-100", text: "text-purple-700", dot: "#9333ea" },
+  "arts-culture": { bg: "bg-pink-100", text: "text-pink-700", dot: "#ec4899" },
 }
 
 function toLabel(value: string): string {
   if (!value) return "All causes"
   return value.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase())
+}
+
+function SkeletonCard() {
+  return (
+    <div className="animate-pulse rounded-xl border border-[#E7E1DA] p-4">
+      <div className="flex items-start justify-between gap-2">
+        <div className="h-5 w-3/5 rounded bg-[#E5E1DD]" />
+        <div className="h-5 w-16 rounded-full bg-[#E5E1DD]" />
+      </div>
+      <div className="mt-2 h-4 w-2/5 rounded bg-[#EDE9E4]" />
+      <div className="mt-3 space-y-2">
+        <div className="h-3 w-full rounded bg-[#EDE9E4]" />
+        <div className="h-3 w-4/5 rounded bg-[#EDE9E4]" />
+      </div>
+      <div className="mt-4 flex gap-2">
+        <div className="h-6 w-20 rounded-full bg-[#EDE9E4]" />
+        <div className="h-6 w-16 rounded-full bg-[#EDE9E4]" />
+        <div className="h-6 w-14 rounded-full bg-[#EDE9E4]" />
+      </div>
+      <div className="mt-4 h-8 w-32 rounded-full bg-[#E5E1DD]" />
+    </div>
+  )
+}
+
+function SkeletonStat() {
+  return (
+    <div className="animate-pulse rounded-xl border border-[#E5E1DD] bg-white p-4">
+      <div className="h-3 w-20 rounded bg-[#EDE9E4]" />
+      <div className="mt-2 h-7 w-10 rounded bg-[#E5E1DD]" />
+    </div>
+  )
+}
+
+function EmptyState({ isError, onRetry }: { isError?: boolean; onRetry: () => void }) {
+  return (
+    <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+      <svg className="h-16 w-16 text-[#D9D2CC]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+        <path d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+      </svg>
+      <h3 className="mt-4 text-lg font-semibold text-[#49423D]">
+        {isError ? "Something went wrong" : "No opportunities found"}
+      </h3>
+      <p className="mt-1 max-w-sm text-sm text-[#7D756F]">
+        {isError
+          ? "We couldn\u2019t reach the server. Check your connection and try again."
+          : "Try broadening your search, changing the cause filter, or adjusting your location."}
+      </p>
+      <button
+        onClick={onRetry}
+        className="mt-4 rounded-full border border-[#CFC7C1] px-5 py-2 text-sm font-medium hover:bg-[#F3ECE5] transition-colors"
+      >
+        {isError ? "Retry" : "Reset & search"}
+      </button>
+    </div>
+  )
 }
 
 
@@ -268,7 +323,7 @@ export default function ImpactMatchPage() {
               </button>
             )}
           </div>
-          <h1 className="mt-4 text-3xl font-semibold leading-tight md:text-5xl">
+          <h1 className="mt-4 text-2xl font-semibold leading-tight sm:text-3xl md:text-5xl">
             Find meaningful volunteer hours with real local impact.
           </h1>
           <p className="mt-3 max-w-3xl text-sm text-[#605A57] md:text-base">
@@ -278,27 +333,33 @@ export default function ImpactMatchPage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1100px] gap-4 px-4 md:grid-cols-4 md:px-6">
-        <div className="rounded-xl border border-[#E5E1DD] bg-white p-4">
-          <p className="text-xs text-[#605A57]">Opportunities</p>
-          <p className="text-2xl font-semibold">{stats.opportunities}</p>
-        </div>
-        <div className="rounded-xl border border-[#E5E1DD] bg-white p-4">
-          <p className="text-xs text-[#605A57]">Volunteer spots needed</p>
-          <p className="text-2xl font-semibold">{stats.totalNeeds}</p>
-        </div>
-        <div className="rounded-xl border border-[#E5E1DD] bg-white p-4">
-          <p className="text-xs text-[#605A57]">High urgency needs</p>
-          <p className="text-2xl font-semibold">{stats.highUrgency}</p>
-        </div>
-        <div className="rounded-xl border border-[#E5E1DD] bg-white p-4">
-          <p className="text-xs text-[#605A57]">Cause categories</p>
-          <p className="text-2xl font-semibold">{stats.causes}</p>
-        </div>
+      <section className="mx-auto grid max-w-[1100px] gap-3 px-4 grid-cols-2 md:grid-cols-4 md:gap-4 md:px-6">
+        {loading && items.length === 0 ? (
+          <>{Array.from({ length: 4 }).map((_, i) => <SkeletonStat key={i} />)}</>
+        ) : (
+          <>
+            <div className="rounded-xl border border-[#E5E1DD] bg-white p-4 transition-all duration-300">
+              <p className="text-xs text-[#605A57]">Opportunities</p>
+              <p className="text-2xl font-semibold">{stats.opportunities}</p>
+            </div>
+            <div className="rounded-xl border border-[#E5E1DD] bg-white p-4 transition-all duration-300">
+              <p className="text-xs text-[#605A57]">Spots needed</p>
+              <p className="text-2xl font-semibold">{stats.totalNeeds}</p>
+            </div>
+            <div className="rounded-xl border border-[#E5E1DD] bg-white p-4 transition-all duration-300">
+              <p className="text-xs text-[#605A57]">High urgency</p>
+              <p className="text-2xl font-semibold">{stats.highUrgency}</p>
+            </div>
+            <div className="rounded-xl border border-[#E5E1DD] bg-white p-4 transition-all duration-300">
+              <p className="text-xs text-[#605A57]">Categories</p>
+              <p className="text-2xl font-semibold">{stats.causes}</p>
+            </div>
+          </>
+        )}
       </section>
 
       <section className="mx-auto mt-4 max-w-[1100px] px-4 pb-16 md:px-6">
-        <div className="grid gap-4 md:grid-cols-[1.1fr_1fr]">
+        <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
           <div className="rounded-2xl border border-[#E5E1DD] bg-white p-4">
             <h2 className="text-lg font-semibold">Smart discovery</h2>
             <p className="mt-1 text-sm text-[#605A57]">Search and filter opportunities, then run AI matching for ranked results.</p>
@@ -437,10 +498,10 @@ export default function ImpactMatchPage() {
                 className="h-[380px] w-full"
               />
             </div>
-            <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[#6C645F]">
-              {Object.entries(CAUSE_COLORS).map(([cause, cls]) => (
-                <span key={cause} className="flex items-center gap-1">
-                  <span className={`inline-block h-2.5 w-2.5 rounded-full ${cls.split(" ")[0]}`} />
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#6C645F]">
+              {Object.entries(CAUSE_COLORS).map(([cause, colors]) => (
+                <span key={cause} className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full ring-1 ring-black/5" style={{ backgroundColor: colors.dot }} />
                   {toLabel(cause)}
                 </span>
               ))}
@@ -458,11 +519,15 @@ export default function ImpactMatchPage() {
               : "High-need local work and discovered listings from the open web."}
           </p>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {filteredItems.map((item) => {
-              const colorClass = CAUSE_COLORS[item.cause] ?? "bg-gray-100 text-gray-700"
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {loading && items.length === 0 ? (
+              <>{Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}</>
+            ) : filteredItems.length === 0 ? (
+              <EmptyState isError={!!error} onRetry={() => void discoverOpportunities()} />
+            ) : filteredItems.map((item) => {
+              const causeStyle = CAUSE_COLORS[item.cause] ?? { bg: "bg-gray-100", text: "text-gray-700", dot: "#6b7280" }
               return (
-                <article key={item.id} className="rounded-xl border border-[#E7E1DA] p-4">
+                <article key={item.id} className="rounded-xl border border-[#E7E1DA] p-4 transition-shadow duration-200 hover:shadow-md">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-base font-semibold leading-tight">{item.title}</h3>
                     <div className="flex shrink-0 items-center gap-1.5">
@@ -475,7 +540,7 @@ export default function ImpactMatchPage() {
                           {item.match_pct}% match
                         </span>
                       )}
-                      <span className={`rounded-full px-2 py-1 text-[11px] font-medium ${colorClass}`}>{toLabel(item.cause)}</span>
+                      <span className={`rounded-full px-2 py-1 text-[11px] font-medium ${causeStyle.bg} ${causeStyle.text}`}>{toLabel(item.cause)}</span>
                     </div>
                   </div>
                   <p className="mt-1 text-sm text-[#625B56]">{item.organization}</p>
@@ -506,7 +571,7 @@ export default function ImpactMatchPage() {
                     href={item.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-4 inline-flex rounded-full bg-[#37322F] px-4 py-2 text-xs font-medium text-white"
+                    className="mt-4 inline-flex rounded-full bg-[#37322F] px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-[#4A4340]"
                   >
                     View opportunity
                   </a>
