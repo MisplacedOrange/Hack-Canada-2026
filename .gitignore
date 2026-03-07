@@ -3,6 +3,7 @@
 # Environment files with secrets
 .env
 *.env
+.env.*.local
 backend/.env
 message.txt
 
@@ -17,6 +18,25 @@ __pycache__/
 dist/
 build/
 
+# uv
+uv.lock
+
+# Alembic
+alembic/versions/*.py
+!alembic/versions/.gitkeep
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Ruff / linting
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -29,3 +49,6 @@ backend/.env
 .secrets/
 *.dpapi
 static_opportunities.json
+
+# Logs
+docs/
