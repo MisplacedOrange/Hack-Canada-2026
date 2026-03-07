@@ -64,38 +64,29 @@ export function Header() {
             </Link>
             <div className="hidden md:flex items-center space-x-6">
               <Link
-                href="/features"
+                href="/"
                 className={`text-sm font-medium transition-colors duration-300 ${
                   isTransparent
                     ? "text-white hover:text-white/80"
                     : "text-[#37322f] hover:text-[#37322f]/80"
                 }`}
               >
-                Features
+                Home
               </Link>
               <Link
-                href="/docs"
+                href="/dashboard"
                 className={`text-sm font-medium transition-colors duration-300 ${
                   isTransparent
                     ? "text-white hover:text-white/80"
                     : "text-[#37322f] hover:text-[#37322f]/80"
                 }`}
               >
-                Technical Details
-              </Link>
-              <Link
-                href="/roadmap"
-                className={`text-sm font-medium transition-colors duration-300 ${
-                  isTransparent
-                    ? "text-white hover:text-white/80"
-                    : "text-[#37322f] hover:text-[#37322f]/80"
-                }`}
-              >
-                Roadmap
+                Dashboard
               </Link>
             </div>
           </div>
           <Button
+            asChild
             variant="ghost"
             className={`transition-colors duration-300 ${
               isTransparent
@@ -103,7 +94,7 @@ export function Header() {
                 : "text-[#37322f] hover:bg-[#37322f]/5"
             }`}
           >
-            Log in
+            <Link href="/login">Log in</Link>
           </Button>
         </nav>
       </div>

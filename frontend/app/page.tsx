@@ -4,27 +4,10 @@ import FooterSection from "@/components/footer-section"
 import { Header } from "@/components/header"
 
 const highlights = [
-  {
-    title: "AI Matching Engine",
-    description:
-      "Recommends opportunities based on interests, skills, availability, and location using embeddings and ranking.",
-    href: "/features/ai-matching",
-  },
-  {
-    title: "Automated Discovery",
-    description: "Scrapes and structures volunteer opportunities so students can find options even without org signups.",
-    href: "/features/automated-discovery",
-  },
-  {
-    title: "Local Impact Map",
-    description: "Visual map with cause-based pins and urgency indicators to surface nearby high-need opportunities.",
-    href: "/features/local-impact-map",
-  },
-  {
-    title: "Smart Search & Filters",
-    description: "Find opportunities by cause, distance, schedule, and skill relevance in seconds.",
-    href: "/features/smart-search",
-  },
+  "AI-powered opportunity matching",
+  "Automated volunteer discovery",
+  "Local impact map and distance-aware search",
+  "Fast filtering for meaningful opportunities",
 ]
 
 export default function HomePage() {
@@ -91,20 +74,29 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-[1060px] px-4 py-14">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-3xl font-semibold tracking-tight">Core Features</h2>
-          <Link href="/features" className="text-sm font-medium text-[#605a57] hover:text-[#37322f]">
-            View all feature pages
-          </Link>
+        <h2 className="text-3xl font-semibold tracking-tight">Core Highlights</h2>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {highlights.map((item) => (
+            <div key={item} className="rounded-lg border border-[#e0dedb] bg-white p-5">
+              <p className="text-sm font-medium text-[#605a57]">{item}</p>
+            </div>
+          ))}
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {highlights.map((item) => (
-            <Link key={item.href} href={item.href} className="rounded-lg border border-[#e0dedb] bg-white p-5 hover:shadow-sm">
-              <h3 className="text-lg font-semibold">{item.title}</h3>
-              <p className="mt-2 text-sm text-[#605a57]">{item.description}</p>
-            </Link>
-          ))}
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/dashboard"
+            className="rounded-md bg-[#37322f] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#2d2825]"
+          >
+            Open Dashboard
+          </Link>
+          <Link
+            href="/login"
+            className="rounded-md border border-[#d1ceca] bg-white px-5 py-2 text-sm font-medium text-[#37322f] transition hover:bg-[#f4f2ef]"
+          >
+            Go to Login
+          </Link>
         </div>
       </section>
 
