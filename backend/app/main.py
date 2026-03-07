@@ -93,7 +93,7 @@ class LegacyRecommendationRequest(BaseModel):
     availability: str = "weekends"
     location: str = "Toronto"
     max_distance_km: int = 20
-    limit: int = Field(default=16, ge=1, le=50)
+    limit: int = Field(default=16, ge=1, le=100)
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -229,7 +229,7 @@ async def legacy_discover(
     location: str = Query(default="Toronto"),
     interests: str = Query(default=""),
     skills: str = Query(default=""),
-    limit: int = Query(default=16, ge=1, le=50),
+    limit: int = Query(default=16, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ) -> LegacyOpportunityResponse:
     rows = list((await db.execute(select(Opportunity))).scalars().all())

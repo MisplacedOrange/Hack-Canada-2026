@@ -35,6 +35,8 @@ type OpportunityResponse = {
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000"
+const MAP_OPPORTUNITY_LIMIT = 100
+const LIST_OPPORTUNITY_LIMIT = 24
 
 const CAUSE_OPTIONS = ["", "environment", "education", "healthcare", "community", "animal-care", "arts-culture"]
 
@@ -187,7 +189,7 @@ export default function ImpactMatchPage() {
       const url = new URL(`${API_BASE}/api/volunteer-organizations`)
       url.searchParams.set("q", query)
       url.searchParams.set("location", location)
-      url.searchParams.set("limit", "16")
+      url.searchParams.set("limit", String(MAP_OPPORTUNITY_LIMIT))
       if (cause) url.searchParams.set("cause", cause)
       if (interests) url.searchParams.set("interests", interests)
       if (skills) url.searchParams.set("skills", skills)
@@ -221,7 +223,7 @@ export default function ImpactMatchPage() {
         availability,
         location,
         max_distance_km: 20,
-        limit: 16,
+        limit: MAP_OPPORTUNITY_LIMIT,
       }
 
       const response = await fetch(`${API_BASE}/api/recommendations`, {
@@ -472,13 +474,13 @@ export default function ImpactMatchPage() {
             <p className="mt-1 text-sm text-[#4676aa]">Color-coded pins show nearby opportunities and urgent needs. Click a pin for details.</p>
             <div className="mt-4 overflow-hidden rounded-xl border border-[#b9d5f7]">
               <OpportunityMap
-                items={filteredItems.slice(0, 40)}
+                items={filteredItems.slice(0, MAP_OPPORTUNITY_LIMIT)}
                 className="h-[380px] w-full"
                 userLocation={userCoords}
                 onLocateMe={requestGeolocation}
               />
             </div>
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#4676aa]">
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#6C645F]">
               {Object.entries(CAUSE_COLORS).map(([cause, colors]) => (
                 <span key={cause} className="inline-flex items-center gap-1.5">
                   <span className="inline-block h-2.5 w-2.5 rounded-full ring-1 ring-black/5" style={{ backgroundColor: colors.dot }} />
@@ -498,13 +500,18 @@ export default function ImpactMatchPage() {
               ? "Ranked by AI based on your interests, skills, and location."
               : "High-need local work and discovered listings from the open web."}
           </p>
+          {filteredItems.length > LIST_OPPORTUNITY_LIMIT && (
+            <p className="mt-2 text-xs text-[#6C645F]">
+              Showing {LIST_OPPORTUNITY_LIMIT} cards below. The map still includes up to {Math.min(filteredItems.length, MAP_OPPORTUNITY_LIMIT)} opportunities.
+            </p>
+          )}
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {loading && items.length === 0 ? (
               <>{Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}</>
             ) : filteredItems.length === 0 ? (
               <EmptyState isError={!!error} onRetry={() => void discoverOpportunities()} />
-            ) : filteredItems.map((item) => {
+            ) : filteredItems.slice(0, LIST_OPPORTUNITY_LIMIT).map((item) => {
               const causeStyle = CAUSE_COLORS[item.cause] ?? { bg: "bg-gray-100", text: "text-gray-700", dot: "#6b7280" }
               return (
                 <article key={item.id} className="rounded-xl border border-[#b9d5f7] p-4 transition-shadow duration-200 hover:shadow-md">
