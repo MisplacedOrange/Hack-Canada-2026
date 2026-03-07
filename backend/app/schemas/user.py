@@ -35,6 +35,7 @@ class UserRead(BaseModel):
     auth0_id: str
     email: str
     full_name: str | None
+    avatar_url: str | None = None
     role: str
     created_at: datetime | None = None
     updated_at: datetime | None = None

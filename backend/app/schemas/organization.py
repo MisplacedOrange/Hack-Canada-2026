@@ -17,4 +17,5 @@ class OrganizationRead(BaseModel):
     name: str
     description: str | None
     website: str | None
+    logo_url: str | None = None
     created_at: datetime | None = None

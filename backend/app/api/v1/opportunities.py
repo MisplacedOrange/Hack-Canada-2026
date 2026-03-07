@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -170,3 +170,29 @@ async def save_opportunity(
         await db.commit()
 
     return {"status": "saved"}
+
+
+@router.put("/{opportunity_id}/image", response_model=OpportunityRead)
+async def upload_opportunity_image(
+    opportunity_id: str,
+    file: UploadFile,
+    org_user: User = Depends(require_role("organization")),
+    db: AsyncSession = Depends(get_db),
+) -> Opportunity:
+    from app.services.cloudinary import upload_image
+
+    opportunity = await db.get(Opportunity, opportunity_id)
+    if opportunity is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Opportunity not found")
+
+    result = await db.execute(select(Organization).where(Organization.user_id == org_user.id))
+    org = result.scalar_one_or_none()
+    if org is None or opportunity.organization_id != org.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your opportunity")
+
+    url = await upload_image(file, folder="impactmatch/opportunities")
+    opportunity.image_url = url
+    db.add(opportunity)
+    await db.commit()
+    await db.refresh(opportunity)
+    return opportunity

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +22,7 @@ async def _build_user_read(db: AsyncSession, user: User) -> UserRead:
         auth0_id=user.auth0_id,
         email=user.email,
         full_name=user.full_name,
+        avatar_url=user.avatar_url,
         role=user.role,
         created_at=user.created_at,
         updated_at=user.updated_at,
@@ -73,5 +74,21 @@ async def update_preferences(
 
     await update_user_embedding(db, preference)
 
+    await db.refresh(current_user)
+    return await _build_user_read(db, current_user)
+
+
+@router.put("/me/avatar", response_model=UserRead)
+async def upload_avatar(
+    file: UploadFile,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserRead:
+    from app.services.cloudinary import upload_image
+
+    url = await upload_image(file, folder="impactmatch/avatars")
+    current_user.avatar_url = url
+    db.add(current_user)
+    await db.commit()
     await db.refresh(current_user)
     return await _build_user_read(db, current_user)

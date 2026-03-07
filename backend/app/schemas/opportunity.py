@@ -40,6 +40,7 @@ class OpportunityRead(BaseModel):
     volunteers_signed: int
     skills_required: list[str] = Field(default_factory=list)
     source_url: str | None
+    image_url: str | None = None
     is_scraped: bool
     created_at: datetime | None = None
     updated_at: datetime | None = None

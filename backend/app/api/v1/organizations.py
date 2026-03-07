@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -56,4 +56,25 @@ async def get_organization(organization_id: str, db: AsyncSession = Depends(get_
     organization = await db.get(Organization, organization_id)
     if organization is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
+    return organization
+
+
+@router.put("/me/logo", response_model=OrganizationRead)
+async def upload_logo(
+    file: UploadFile,
+    org_user: User = Depends(require_role("organization")),
+    db: AsyncSession = Depends(get_db),
+) -> Organization:
+    from app.services.cloudinary import upload_image
+
+    result = await db.execute(select(Organization).where(Organization.user_id == org_user.id))
+    organization = result.scalar_one_or_none()
+    if organization is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Create your organization first")
+
+    url = await upload_image(file, folder="impactmatch/logos")
+    organization.logo_url = url
+    db.add(organization)
+    await db.commit()
+    await db.refresh(organization)
     return organization

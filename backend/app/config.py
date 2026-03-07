@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     MAPBOX_SECRET_TOKEN: str = ""
 
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
+
     ENVIRONMENT: str = "development"
     ALLOWED_ORIGINS: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
 
