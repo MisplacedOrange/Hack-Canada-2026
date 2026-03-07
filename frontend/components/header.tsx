@@ -45,49 +45,52 @@ export function Header() {
       }`}
     >
       <div className="max-w-[1060px] mx-auto px-4">
-        <nav className="flex items-center justify-between py-4">
-          <div className="flex items-center space-x-8">
-            <Link href="/" className="flex items-center space-x-2">
-              <Image
-                src="/assets/images/summit.svg"
-                alt="Summit Logo"
-                width={24}
-                height={24}
-                className={`transition-all duration-300 ${
-                  isTransparent ? "brightness-0 invert" : "drop-shadow-[0_0_8px_rgba(70,148,255,0.28)]"
-                }`}
-              />
-              <span
-                className={`font-semibold text-lg transition-colors duration-300 ${
-                  isTransparent ? "text-white" : "text-[#143d73]"
-                }`}
-              >
-                Summit
-              </span>
+        <nav className="relative flex items-center justify-between py-4">
+          {/* Left: Logo */}
+          <Link href="/" className="flex items-center space-x-2">
+            <Image
+              src="/assets/images/summit.svg"
+              alt="Summit Logo"
+              width={24}
+              height={24}
+              className={`transition-all duration-300 ${
+                isTransparent ? "brightness-0 invert" : "drop-shadow-[0_0_8px_rgba(70,148,255,0.28)]"
+              }`}
+            />
+            <span
+              className={`font-semibold text-lg transition-colors duration-300 ${
+                isTransparent ? "text-white" : "text-[#143d73]"
+              }`}
+            >
+              Summit
+            </span>
+          </Link>
+
+          {/* Center: Nav links (absolutely centered) */}
+          <div className="absolute left-1/2 hidden -translate-x-1/2 items-center space-x-6 md:flex">
+            <Link
+              href="/"
+              className={`text-sm font-medium transition-colors duration-300 ${
+                isTransparent
+                  ? "text-white hover:text-white/80"
+                  : "text-[#1f4f89] hover:text-[#2f6cb3]"
+              }`}
+            >
+              Home
             </Link>
-            <div className="hidden md:flex items-center space-x-6">
-              <Link
-                href="/"
-                className={`text-sm font-medium transition-colors duration-300 ${
-                  isTransparent
-                    ? "text-white hover:text-white/80"
-                    : "text-[#1f4f89] hover:text-[#2f6cb3]"
-                }`}
-              >
-                Home
-              </Link>
-              <Link
-                href="/dashboard"
-                className={`text-sm font-medium transition-colors duration-300 ${
-                  isTransparent
-                    ? "text-white hover:text-white/80"
-                    : "text-[#1f4f89] hover:text-[#2f6cb3]"
-                }`}
-              >
-                Dashboard
-              </Link>
-            </div>
+            <Link
+              href="/dashboard"
+              className={`text-sm font-medium transition-colors duration-300 ${
+                isTransparent
+                  ? "text-white hover:text-white/80"
+                  : "text-[#1f4f89] hover:text-[#2f6cb3]"
+              }`}
+            >
+              Dashboard
+            </Link>
           </div>
+
+          {/* Right: Auth buttons */}
           <div className="flex items-center gap-2">
             {!loading && user ? (
               <Button
