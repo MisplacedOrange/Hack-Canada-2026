@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.opportunity import Opportunity
@@ -15,17 +15,6 @@ def build_profile_text(preferences: UserPreference) -> str:
     interests = ", ".join(preferences.interests or [])
     skills = ", ".join(preferences.skills or [])
     return f"Interests: {interests}. Skills: {skills}."
-
-
-def cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:
-    if not vec_a or not vec_b or len(vec_a) != len(vec_b):
-        return 0.0
-    dot = sum(a * b for a, b in zip(vec_a, vec_b, strict=False))
-    norm_a = math.sqrt(sum(a * a for a in vec_a))
-    norm_b = math.sqrt(sum(b * b for b in vec_b))
-    if norm_a == 0 or norm_b == 0:
-        return 0.0
-    return dot / (norm_a * norm_b)
 
 
 def _coerce_embedding(value: object) -> list[float]:
@@ -61,35 +50,33 @@ async def update_user_embedding(db: AsyncSession, preferences: UserPreference) -
     await db.commit()
 
 
-async def get_candidate_opportunities(db: AsyncSession, limit: int = 100) -> list[Opportunity]:
-    result = await db.execute(select(Opportunity).limit(limit))
-    return list(result.scalars().all())
-
-
-def score_opportunity(
-    opp: Opportunity,
-    user_embedding: list[float],
+def _rerank(
+    candidates: list[tuple[Opportunity, float]],
     user_lat: float | None,
     user_lng: float | None,
-) -> float:
-    similarity_score = cosine_similarity(user_embedding, _coerce_embedding(opp.embedding))
+) -> list[tuple[Opportunity, float]]:
+    """Apply proximity, demand, and recency boosts on top of cosine similarity."""
+    scored: list[tuple[Opportunity, float]] = []
+    for opp, cosine_sim in candidates:
+        proximity_boost = 0.0
+        if user_lat is not None and user_lng is not None and opp.location_lat is not None and opp.location_lng is not None:
+            distance_km = haversine(user_lat, user_lng, opp.location_lat, opp.location_lng)
+            proximity_boost = max(0.0, 1.0 - (distance_km / 50.0))
 
-    proximity_boost = 0.0
-    if user_lat is not None and user_lng is not None and opp.location_lat is not None and opp.location_lng is not None:
-        distance_km = haversine(user_lat, user_lng, opp.location_lat, opp.location_lng)
-        proximity_boost = max(0.0, 1.0 - (distance_km / 50.0))
+        needed = opp.volunteers_needed or 0
+        signed = opp.volunteers_signed or 0
+        demand_boost = ((needed - signed) / max(needed, 1)) * 0.3
 
-    needed = opp.volunteers_needed or 0
-    signed = opp.volunteers_signed or 0
-    demand_ratio = (needed - signed) / max(needed, 1)
-    demand_boost = demand_ratio * 0.3
+        recency_boost = 0.0
+        if opp.event_date is not None:
+            days_until = (opp.event_date - date.today()).days
+            recency_boost = max(0.0, 1.0 - (days_until / 30.0)) * 0.2
 
-    recency_boost = 0.0
-    if opp.event_date is not None:
-        days_until = (opp.event_date - date.today()).days
-        recency_boost = max(0.0, 1.0 - (days_until / 30.0)) * 0.2
+        final_score = float(cosine_sim + proximity_boost + demand_boost + recency_boost)
+        scored.append((opp, final_score))
 
-    return float(similarity_score + proximity_boost + demand_boost + recency_boost)
+    scored.sort(key=lambda item: item[1], reverse=True)
+    return scored
 
 
 async def get_recommendations(
@@ -102,13 +89,24 @@ async def get_recommendations(
         await update_user_embedding(db, preferences)
         embedding = _coerce_embedding(preferences.embedding)
 
-    candidates = await get_candidate_opportunities(db)
-    scored = [
-        (
-            opp,
-                score_opportunity(opp, embedding, preferences.location_lat, preferences.location_lng),
+    # Use pgvector's native <=> (cosine distance) operator for KNN search.
+    # Fetch more candidates than needed so re-ranking with bonus signals
+    # can still surface good results that aren't the closest by embedding alone.
+    knn_limit = min(limit * 3, 100)
+    vec_literal = "[" + ",".join(str(v) for v in embedding) + "]"
+
+    stmt = (
+        select(
+            Opportunity,
+            (1 - Opportunity.embedding.cosine_distance(text(f"'{vec_literal}'::vector"))).label("cosine_sim"),
         )
-        for opp in candidates
-    ]
-    scored.sort(key=lambda item: item[1], reverse=True)
-    return scored[:limit]
+        .where(Opportunity.embedding.is_not(None))
+        .order_by(Opportunity.embedding.cosine_distance(text(f"'{vec_literal}'::vector")))
+        .limit(knn_limit)
+    )
+
+    result = await db.execute(stmt)
+    candidates = [(row[0], float(row[1])) for row in result.all()]
+
+    reranked = _rerank(candidates, preferences.location_lat, preferences.location_lng)
+    return reranked[:limit]
