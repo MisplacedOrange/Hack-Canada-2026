@@ -35,7 +35,7 @@ export default function HomePage() {
               className="text-sm uppercase tracking-widest"
               style={{ color: "#D4A853" }}
             >
-              Lorem Ipsum Dolor
+              Summit Volunteer Platform
             </p>
           </div>
 
@@ -47,9 +47,9 @@ export default function HomePage() {
               fontStyle: "italic",
             }}
           >
-            Consectetur Adipiscing Elit
+            Find Meaningful Volunteer
             <br />
-            Sed Do Eiusmod Tempor!
+            Opportunities Near You
           </h1>
         </div>
       </section>
