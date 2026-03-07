@@ -19,10 +19,15 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata: Metadata = {
-  title: "Summit ImpactMatch - Volunteer Opportunity Platform",
+  title: "Summit",
   description:
     "AI-powered volunteer matching, automated opportunity discovery, and local impact mapping for students and nonprofits.",
-    generator: 'v0.app'
+  generator: "v0.app",
+  icons: {
+    icon: "/assets/images/Summit%20Logo.png",
+    shortcut: "/assets/images/Summit%20Logo.png",
+    apple: "/assets/images/Summit%20Logo.png",
+  },
 }
 
 export default function RootLayout({
