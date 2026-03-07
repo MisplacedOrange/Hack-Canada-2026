@@ -1,4 +1,4 @@
-# Hack-Canada-2026
+# HackCanada-2026
 
 This is the repository for the Hack Canada Hackathon at the Spur Innovation Centre:
 
