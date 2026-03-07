@@ -1,7 +1,10 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { useEffect, useMemo, useState } from "react"
 import { useAuth } from "./auth-context"
+
+const OpportunityMap = dynamic(() => import("@/components/opportunity-map"), { ssr: false, loading: () => <div className="flex h-[380px] items-center justify-center rounded-xl bg-[#F9F6F2]"><p className="text-sm text-[#999]">Loading map…</p></div> })
 
 type Opportunity = {
   id: string
@@ -47,10 +50,6 @@ function toLabel(value: string): string {
   return value.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase())
 }
 
-function normalizeToPercent(value: number, min: number, max: number): number {
-  if (max <= min) return 50
-  return ((value - min) / (max - min)) * 100
-}
 
 export default function ImpactMatchPage() {
   const { user, loading: authLoading, login, logout } = useAuth()
@@ -190,21 +189,6 @@ export default function ImpactMatchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const latRange = useMemo(() => {
-    if (!filteredItems.length) return { min: 43.6, max: 43.9 }
-    return {
-      min: Math.min(...filteredItems.map((x) => x.latitude)),
-      max: Math.max(...filteredItems.map((x) => x.latitude)),
-    }
-  }, [filteredItems])
-
-  const lonRange = useMemo(() => {
-    if (!filteredItems.length) return { min: -79.55, max: -79.2 }
-    return {
-      min: Math.min(...filteredItems.map((x) => x.longitude)),
-      max: Math.max(...filteredItems.map((x) => x.longitude)),
-    }
-  }, [filteredItems])
 
   return (
     <main className="min-h-screen bg-[#F7F5F3] text-[#37322F]">
@@ -446,29 +430,20 @@ export default function ImpactMatchPage() {
 
           <div className="rounded-2xl border border-[#E5E1DD] bg-white p-4">
             <h2 className="text-lg font-semibold">Local impact map</h2>
-            <p className="mt-1 text-sm text-[#605A57]">Color-coded pins show nearby opportunities and urgent needs.</p>
-            <div className="relative mt-4 h-[380px] overflow-hidden rounded-xl border border-[#ECE7E2] bg-gradient-to-b from-[#F9F6F2] to-[#EFE8DF]">
-              {filteredItems.slice(0, 20).map((item) => {
-                const x = normalizeToPercent(item.longitude, lonRange.min, lonRange.max)
-                const y = 100 - normalizeToPercent(item.latitude, latRange.min, latRange.max)
-                const colorClass = CAUSE_COLORS[item.cause] ?? "bg-gray-100 text-gray-700"
-                return (
-                  <div
-                    key={item.id}
-                    className="group absolute"
-                    style={{ left: `${Math.max(2, Math.min(95, x))}%`, top: `${Math.max(2, Math.min(95, y))}%` }}
-                  >
-                    <span className="block h-3 w-3 rounded-full bg-[#37322F] ring-4 ring-white/70" />
-                    <div className="pointer-events-none absolute left-3 top-3 hidden w-56 rounded-lg border border-[#D8D0C8] bg-white p-2 text-xs shadow-lg group-hover:block">
-                      <p className="font-semibold">{item.title}</p>
-                      <p className="text-[#6C645F]">{item.organization}</p>
-                      <p className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${colorClass}`}>
-                        {toLabel(item.cause)}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
+            <p className="mt-1 text-sm text-[#605A57]">Color-coded pins show nearby opportunities and urgent needs. Click a pin for details.</p>
+            <div className="mt-4 overflow-hidden rounded-xl border border-[#ECE7E2]">
+              <OpportunityMap
+                items={filteredItems.slice(0, 40)}
+                className="h-[380px] w-full"
+              />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[#6C645F]">
+              {Object.entries(CAUSE_COLORS).map(([cause, cls]) => (
+                <span key={cause} className="flex items-center gap-1">
+                  <span className={`inline-block h-2.5 w-2.5 rounded-full ${cls.split(" ")[0]}`} />
+                  {toLabel(cause)}
+                </span>
+              ))}
             </div>
           </div>
         </div>

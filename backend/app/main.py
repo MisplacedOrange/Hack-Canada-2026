@@ -87,20 +87,25 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return earth_km * (2 * math.atan2(math.sqrt(a), math.sqrt(1 - a)))
 
 
-def _stable_coord(seed: str) -> tuple[float, float]:
+def _geocode_location(location_text: str, seed: str) -> tuple[float, float]:
+    """Return real coordinates for a location string, with small jitter to avoid stacking."""
+    coords = _city_coords(location_text) if location_text else None
+    if coords:
+        digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+        jitter_lat = (int(digest[:4], 16) % 200 - 100) / 10000.0
+        jitter_lng = (int(digest[4:8], 16) % 200 - 100) / 10000.0
+        return round(coords[0] + jitter_lat, 6), round(coords[1] + jitter_lng, 6)
     digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
-    lat_component = int(digest[:8], 16) % 2400
-    lon_component = int(digest[8:16], 16) % 3200
-    lat = 43.62 + lat_component / 10000.0
-    lon = -79.52 + lon_component / 10000.0
+    lat = 43.62 + (int(digest[:8], 16) % 2400) / 10000.0
+    lon = -79.52 + (int(digest[8:16], 16) % 3200) / 10000.0
     return round(lat, 6), round(lon, 6)
 
 
 def _build_legacy_item(opp: Opportunity, score: float = 0.0) -> LegacyOpportunity:
     seed = opp.source_url or opp.id
-    lat, lon = _stable_coord(seed)
-    location_lat = float(opp.location_lat) if opp.location_lat is not None else lat
-    location_lng = float(opp.location_lng) if opp.location_lng is not None else lon
+    fallback_lat, fallback_lon = _geocode_location(opp.location_text or "", seed)
+    location_lat = float(opp.location_lat) if opp.location_lat is not None else fallback_lat
+    location_lng = float(opp.location_lng) if opp.location_lng is not None else fallback_lon
     needed = int(opp.volunteers_needed or 1)
     signed = int(opp.volunteers_signed or 0)
     remaining = max(0, needed - signed)
@@ -143,10 +148,11 @@ def _load_legacy_seed_items(limit: int) -> list[LegacyOpportunity]:
     for index, row in enumerate(rows[:limit], start=1):
         title = str(row.get("title", "Volunteer Opportunity")).strip() or "Volunteer Opportunity"
         link = str(row.get("link", row.get("url", "#"))).strip() or "#"
+        location_text = str(row.get("location", "Toronto")).strip() or "Toronto"
         lat = row.get("latitude")
         lon = row.get("longitude")
         if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
-            lat, lon = _stable_coord(link + title)
+            lat, lon = _geocode_location(location_text, link + title)
 
         category = str(row.get("cause", row.get("category", "community"))).strip() or "community"
         skills_raw = row.get("skills", [])
@@ -367,13 +373,36 @@ def _city_coords(location: str) -> tuple[float, float] | None:
     cities: dict[str, tuple[float, float]] = {
         "toronto": (43.6532, -79.3832),
         "mississauga": (43.5890, -79.6441),
+        "brampton": (43.7315, -79.7624),
+        "markham": (43.8561, -79.3370),
+        "scarborough": (43.7731, -79.2578),
+        "north york": (43.7615, -79.4111),
+        "etobicoke": (43.6205, -79.5132),
+        "vaughan": (43.8361, -79.4983),
+        "richmond hill": (43.8828, -79.4403),
+        "oakville": (43.4675, -79.6877),
+        "hamilton": (43.2557, -79.8711),
+        "gta": (43.7001, -79.4163),
+        "remote": (43.6532, -79.3832),
         "vancouver": (49.2827, -123.1207),
         "montreal": (45.5017, -73.5673),
         "ottawa": (45.4215, -75.6972),
         "calgary": (51.0447, -114.0719),
         "edmonton": (53.5461, -113.4938),
+        "winnipeg": (49.8951, -97.1384),
+        "halifax": (44.6488, -63.5752),
+        "victoria": (48.4284, -123.3656),
+        "kitchener": (43.4516, -80.4925),
+        "london": (42.9849, -81.2453),
+        "waterloo": (43.4643, -80.5204),
     }
-    return cities.get(location.strip().lower())
+    loc = location.strip().lower()
+    if loc in cities:
+        return cities[loc]
+    for key in cities:
+        if key in loc or loc in key:
+            return cities[key]
+    return None
 
 
 @app.post("/api/recommendations", response_model=LegacyOpportunityResponse)
