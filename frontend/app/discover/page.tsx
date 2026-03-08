@@ -83,6 +83,22 @@ function normalizeTag(value: string): string {
   return value.trim().toLowerCase()
 }
 
+const SUPPORTED_CAUSES = CAUSE_OPTIONS.filter(Boolean).map(normalizeTag)
+
+function getInterestButtonClasses(interest: string, active: boolean): string {
+  const normalizedInterest = normalizeTag(interest)
+  const palette = CAUSE_COLORS[normalizedInterest]
+  if (palette) {
+    return active
+      ? `border-transparent ${palette.bg} ${palette.text}`
+      : `border-[#3d6188] bg-[#153d64] ${palette.text} hover:${palette.bg}`
+  }
+
+  return active
+    ? "border-[#65b2ff] bg-[#1e4f7e] text-[#e7f2ff]"
+    : "border-[#3d6188] bg-[#163d64] text-[#9ec4eb] hover:bg-[#1c4c79]"
+}
+
 function parseTags(value: string): string[] {
   return Array.from(
     new Set(
@@ -115,6 +131,11 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 
 function matchesInterestFilters(item: Opportunity, filters: string[]): boolean {
   if (filters.length === 0) return true
+  const normalizedCause = normalizeTag(item.cause)
+  const categoryFilters = filters.filter((filter) => SUPPORTED_CAUSES.includes(normalizeTag(filter)))
+  if (categoryFilters.length > 0) {
+    return categoryFilters.includes(normalizedCause)
+  }
   const haystack = [item.title, item.description, item.cause, item.location, ...item.skills]
     .join(" ")
     .toLowerCase()
@@ -369,11 +390,10 @@ function SearchHeaderSection({
                       key={interest}
                       type="button"
                       onClick={() => setSelectedInterestFilters((current) => toggleTag(current, interest))}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                        selectedInterestFilters.includes(interest)
-                          ? "border-emerald-400/70 bg-emerald-500/20 text-emerald-200"
-                          : "border-[#3d6188] bg-[#153d64] text-[#9dc2e6] hover:bg-[#1a476f]"
-                      }`}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${getInterestButtonClasses(
+                        interest,
+                        selectedInterestFilters.includes(interest),
+                      )}`}
                     >
                       {toLabel(interest)}
                     </button>
@@ -466,7 +486,7 @@ function RecommendationProfileCard({
   return (
     <div className="rounded-2xl border border-[#315781] bg-[linear-gradient(145deg,rgba(13,42,72,0.98),rgba(9,29,53,0.95))] p-4 shadow-[0_16px_38px_rgba(0,0,0,0.3)]">
       <h2 className="text-lg font-semibold text-[#e7f2ff]">Recommendation profile</h2>
-      <p className="mt-1 text-sm text-[#8bb3dc]">Keep your saved interests separate from search filters so recommendation tuning has its own space.</p>
+      <p className="mt-1 text-sm text-[#8bb3dc]">Choose interests to preview matching opportunities now, then save them to use the same preferences for AI matching later.</p>
 
       <div className="mt-4 grid gap-4">
         <div>
@@ -477,11 +497,10 @@ function RecommendationProfileCard({
                 key={interest}
                 type="button"
                 onClick={() => setProfileInterests((current) => toggleTag(current, interest))}
-                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                  profileInterests.includes(interest)
-                    ? "border-[#65b2ff] bg-[#1e4f7e] text-[#e7f2ff]"
-                    : "border-[#3d6188] bg-[#163d64] text-[#9ec4eb] hover:bg-[#1c4c79]"
-                }`}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${getInterestButtonClasses(
+                  interest,
+                  profileInterests.includes(interest),
+                )}`}
               >
                 {toLabel(interest)}
               </button>
@@ -766,6 +785,14 @@ export default function ImpactMatchPage() {
     return Array.from(new Set([...INTEREST_SUGGESTIONS, ...savedInterests, ...profileInterests].map(normalizeTag).filter(Boolean)))
   }, [profileInterests, user])
 
+  const effectiveInterestFilters = useMemo(() => {
+    const explicitFilters = selectedInterestFilters.map(normalizeTag).filter(Boolean)
+    if (explicitFilters.length > 0) {
+      return explicitFilters
+    }
+    return profileInterests.map(normalizeTag).filter(Boolean)
+  }, [profileInterests, selectedInterestFilters])
+
   const filteredItems = useMemo(() => {
     let result = items.filter((item) => matchesSearchQuery(item, query))
 
@@ -773,7 +800,7 @@ export default function ImpactMatchPage() {
       result = result.filter((item) => normalizeTag(item.cause) === normalizeTag(cause))
     }
 
-    result = result.filter((item) => matchesInterestFilters(item, selectedInterestFilters))
+    result = result.filter((item) => matchesInterestFilters(item, effectiveInterestFilters))
 
     if (geography === "remote") {
       result = result.filter((item) => /remote|virtual|online/i.test(`${item.description} ${item.location}`))
@@ -797,7 +824,7 @@ export default function ImpactMatchPage() {
       })
     }
     return result
-  }, [cause, geography, items, query, radiusKm, selectedInterestFilters, userCoords])
+  }, [cause, effectiveInterestFilters, geography, items, query, radiusKm, userCoords])
 
   const nearbyEnabled = geography === "nearby"
 
