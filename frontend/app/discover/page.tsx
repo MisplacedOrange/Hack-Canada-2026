@@ -36,11 +36,12 @@ type Opportunity = {
 }
 
 type V1ListResponse = { total: number; items: V1OpportunityRead[] }
-type V1RecommendationResponse = { items: Array<{ opportunity: V1OpportunityRead; score: number }> }
+type V1RecommendationResponse = { items: Array<{ opportunity: V1OpportunityRead; score: number; reason?: string }> }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000"
 const MAP_OPPORTUNITY_LIMIT = 100
 const LIST_OPPORTUNITY_LIMIT = 24
+const DISCOVER_FETCH_LIMIT = 100
 
 const CAUSE_OPTIONS = ["", "environment", "education", "healthcare", "community", "animal-care", "arts-culture"]
 const INTEREST_SUGGESTIONS = [
@@ -118,6 +119,28 @@ function matchesInterestFilters(item: Opportunity, filters: string[]): boolean {
     .join(" ")
     .toLowerCase()
   return filters.some((filter) => haystack.includes(filter))
+}
+
+function matchesSearchQuery(item: Opportunity, query: string): boolean {
+  const normalizedQuery = query.trim().toLowerCase()
+  if (!normalizedQuery) return true
+
+  const terms = normalizedQuery.split(/\s+/).filter(Boolean)
+  if (terms.length === 0) return true
+
+  const haystack = [
+    item.title,
+    item.organization,
+    item.description,
+    item.cause,
+    item.location,
+    item.schedule,
+    ...item.skills,
+  ]
+    .join(" ")
+    .toLowerCase()
+
+  return terms.every((term) => haystack.includes(term))
 }
 
 function SkeletonCard() {
@@ -244,7 +267,7 @@ function SearchHeaderSection({
   const geographyLabel = GEOGRAPHY_OPTIONS.find((option) => option.value === geography)?.label ?? "All places"
 
   return (
-    <section className="sticky top-16 z-[60] border-y border-[#2f547d]/80 bg-[#071a31]/80 backdrop-blur-xl">
+    <section className="sticky top-16 isolate z-[80] border-y border-[#2f547d]/80 bg-[#071a31]/80 backdrop-blur-xl">
       <div className="mx-auto w-full max-w-[1680px] px-4 py-3 md:px-6 xl:px-8">
         <div className="rounded-[28px] border border-[#34597f] bg-[#0c2a49]/80 px-3 py-3 shadow-[0_14px_36px_rgba(0,0,0,0.35)] backdrop-blur-xl">
           <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -684,7 +707,7 @@ export default function ImpactMatchPage() {
   const { user, token, loading: authLoading, login, updatePreferences } = useAuth()
   const router = useRouter()
 
-  const [query, setQuery] = useState("student volunteer opportunities Toronto")
+  const [query, setQuery] = useState("")
   const [cause, setCause] = useState("")
   const [geography, setGeography] = useState<(typeof GEOGRAPHY_OPTIONS)[number]["value"]>("all")
   const [selectedInterestFilters, setSelectedInterestFilters] = useState<string[]>([])
@@ -763,7 +786,13 @@ export default function ImpactMatchPage() {
   }, [profileInterests, user])
 
   const filteredItems = useMemo(() => {
-    let result = items.filter((item) => matchesInterestFilters(item, selectedInterestFilters))
+    let result = items.filter((item) => matchesSearchQuery(item, query))
+
+    if (cause) {
+      result = result.filter((item) => normalizeTag(item.cause) === normalizeTag(cause))
+    }
+
+    result = result.filter((item) => matchesInterestFilters(item, selectedInterestFilters))
 
     if (geography === "remote") {
       result = result.filter((item) => /remote|virtual|online/i.test(`${item.description} ${item.location}`))
@@ -787,7 +816,7 @@ export default function ImpactMatchPage() {
       })
     }
     return result
-  }, [geography, items, radiusKm, selectedInterestFilters, userCoords])
+  }, [cause, geography, items, query, radiusKm, selectedInterestFilters, userCoords])
 
   const nearbyEnabled = geography === "nearby"
 
@@ -799,9 +828,7 @@ export default function ImpactMatchPage() {
     setError(null)
     try {
       const url = new URL(`${API_BASE}/v1/opportunities`)
-      url.searchParams.set("q", query)
-      url.searchParams.set("limit", String(LIST_OPPORTUNITY_LIMIT))
-      if (cause) url.searchParams.set("category", cause)
+      url.searchParams.set("limit", String(DISCOVER_FETCH_LIMIT))
       if (nearbyEnabled && userCoords) {
         url.searchParams.set("lat", String(userCoords.lat))
         url.searchParams.set("lng", String(userCoords.lng))
@@ -880,7 +907,7 @@ export default function ImpactMatchPage() {
       if (!response.ok) throw new Error(`Backend returned ${response.status}`)
       const data: V1RecommendationResponse = await response.json()
       const mapped = data.items.map((item) =>
-        mapOpportunityRead(item.opportunity, Math.round(item.score * 100)),
+        mapOpportunityRead(item.opportunity, Math.round(item.score * 100), item.reason ?? ""),
       )
       setItems(mapped)
       setSource("AI Matched")

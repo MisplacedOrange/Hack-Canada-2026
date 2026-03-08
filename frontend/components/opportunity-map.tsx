@@ -228,11 +228,11 @@ export default function OpportunityMap({ items, heatPoints, className, userLocat
   }, [userLocation])
 
   return (
-    <div className="relative">
-      <div ref={containerRef} className={className ?? "h-[380px] w-full rounded-xl"} />
+    <div className="relative isolate z-0 [&_.leaflet-bottom]:z-10 [&_.leaflet-control]:z-10 [&_.leaflet-pane]:z-0 [&_.leaflet-top]:z-10">
+      <div ref={containerRef} className={`relative z-0 ${className ?? "h-[380px] w-full rounded-xl"}`} />
 
       {/* Mode toggle */}
-      <div className="absolute top-3 left-3 z-[1000] flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md text-xs font-medium">
+      <div className="absolute top-3 left-3 z-10 flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md text-xs font-medium">
         <button
           type="button"
           onClick={() => setMode("markers")}
@@ -254,7 +254,7 @@ export default function OpportunityMap({ items, heatPoints, className, userLocat
           type="button"
           onClick={onLocateMe}
           title="Find my location"
-          className="absolute top-3 right-3 z-[1000] flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white shadow-md transition-colors hover:bg-gray-50"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3"/>
