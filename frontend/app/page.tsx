@@ -77,7 +77,7 @@ export default function LandingPage() {
   const blackOpacity = useTransform(scrollYProgress, [0.77, 0.99], [0, 0.9])
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#061120] text-[#d9e9ff]">
+    <main className="min-h-screen bg-[#061120] text-[#d9e9ff]">
       <Header />
 
       {/* Unified Hero + Transition — one section, one mountain image, one sticky viewport */}
