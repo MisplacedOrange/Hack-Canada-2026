@@ -680,7 +680,6 @@ function OpportunityCard({ item, isAiResult }: { item: Opportunity; isAiResult: 
   )
 }
 
-
 export default function ImpactMatchPage() {
   const { user, token, loading: authLoading, login, updatePreferences } = useAuth()
   const router = useRouter()
@@ -689,7 +688,7 @@ export default function ImpactMatchPage() {
   const [cause, setCause] = useState("")
   const [geography, setGeography] = useState<(typeof GEOGRAPHY_OPTIONS)[number]["value"]>("all")
   const [selectedInterestFilters, setSelectedInterestFilters] = useState<string[]>([])
-  const [activeTab, setActiveTab] = useState("filters")
+  const [activeTab, setActiveTab] = useState("discover")
 
   const [profileInterests, setProfileInterests] = useState<string[]>([])
   const [profileSkills, setProfileSkills] = useState("")
@@ -930,53 +929,86 @@ export default function ImpactMatchPage() {
       />
 
       <section className="mx-auto mt-4 w-full max-w-[1680px] px-4 pb-16 md:px-6 xl:px-8">
-        <div className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)] xl:items-start">
-          <RecommendationProfileCard
-            profileInterests={profileInterests}
-            setProfileInterests={setProfileInterests}
-            customInterest={customInterest}
-            setCustomInterest={setCustomInterest}
-            addCustomInterest={addCustomInterest}
-            profileSkills={profileSkills}
-            setProfileSkills={setProfileSkills}
-            startWatchingLocation={startWatchingLocation}
-            userCoords={userCoords}
-            saveRecommendationProfile={saveRecommendationProfile}
-            savingProfile={savingProfile}
-            user={user}
-            profileSaved={profileSaved}
-          />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-4">
+          <TabsList className="h-auto rounded-full border border-[#315781] bg-[#0c2a49] p-1">
+            <TabsTrigger value="discover" className="rounded-full px-4 py-2 text-[#c0dbf5] data-[state=active]:bg-[#1d4f7f] data-[state=active]:text-white">
+              Discover
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="rounded-full px-4 py-2 text-[#c0dbf5] data-[state=active]:bg-[#1d4f7f] data-[state=active]:text-white">
+              Profile
+            </TabsTrigger>
+          </TabsList>
 
-          <LocalImpactMapCard
-            filteredItems={filteredItems}
-            userCoords={userCoords}
-            startWatchingLocation={startWatchingLocation}
-          />
-        </div>
+          <TabsContent value="discover" className="space-y-4">
+            <div className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)] xl:items-start">
+              <RecommendationProfileCard
+                profileInterests={profileInterests}
+                setProfileInterests={setProfileInterests}
+                customInterest={customInterest}
+                setCustomInterest={setCustomInterest}
+                addCustomInterest={addCustomInterest}
+                profileSkills={profileSkills}
+                setProfileSkills={setProfileSkills}
+                startWatchingLocation={startWatchingLocation}
+                userCoords={userCoords}
+                saveRecommendationProfile={saveRecommendationProfile}
+                savingProfile={savingProfile}
+                user={user}
+                profileSaved={profileSaved}
+              />
 
-        <div className="mt-4 rounded-2xl border border-[#315781] bg-[linear-gradient(145deg,rgba(13,42,72,0.98),rgba(9,29,53,0.95))] p-4">
-          <h2 className="text-lg font-semibold text-[#e7f2ff]">
-            {isAiResult ? "AI-Matched opportunities" : "Opportunities"}
-          </h2>
-          <p className="mt-1 text-sm text-[#8bb3dc]">
-            {isAiResult
-              ? "Ranked by AI based on your interests, skills, and location."
-              : "High-need local work and discovered listings from the open web."}
-          </p>
-          {filteredItems.length > LIST_OPPORTUNITY_LIMIT && (
-            <p className="mt-2 text-xs text-[#9ec4eb]">
-              Showing {LIST_OPPORTUNITY_LIMIT} cards below. The map still includes up to {Math.min(filteredItems.length, MAP_OPPORTUNITY_LIMIT)} opportunities.
-            </p>
-          )}
+              <LocalImpactMapCard
+                filteredItems={filteredItems}
+                userCoords={userCoords}
+                startWatchingLocation={startWatchingLocation}
+              />
+            </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {loading && items.length === 0 ? (
-              <>{Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}</>
-            ) : filteredItems.length === 0 ? (
-              <EmptyState isError={!!error} onRetry={resetFilters} />
-            ) : visibleItems.map((item) => <OpportunityCard key={item.id} item={item} isAiResult={isAiResult} />)}
-          </div>
-        </div>
+            <div className="rounded-2xl border border-[#315781] bg-[linear-gradient(145deg,rgba(13,42,72,0.98),rgba(9,29,53,0.95))] p-4">
+              <h2 className="text-lg font-semibold text-[#e7f2ff]">
+                {isAiResult ? "AI-Matched opportunities" : "Opportunities"}
+              </h2>
+              <p className="mt-1 text-sm text-[#8bb3dc]">
+                {isAiResult
+                  ? "Ranked by AI based on your interests, skills, and location."
+                  : "High-need local work and discovered listings from the open web."}
+              </p>
+              {filteredItems.length > LIST_OPPORTUNITY_LIMIT && (
+                <p className="mt-2 text-xs text-[#9ec4eb]">
+                  Showing {LIST_OPPORTUNITY_LIMIT} cards below. The map still includes up to {Math.min(filteredItems.length, MAP_OPPORTUNITY_LIMIT)} opportunities.
+                </p>
+              )}
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {loading && items.length === 0 ? (
+                  <>{Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}</>
+                ) : filteredItems.length === 0 ? (
+                  <EmptyState isError={!!error} onRetry={resetFilters} />
+                ) : visibleItems.map((item) => <OpportunityCard key={item.id} item={item} isAiResult={isAiResult} />)}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="profile">
+            <div className="mx-auto max-w-[880px]">
+              <RecommendationProfileCard
+                profileInterests={profileInterests}
+                setProfileInterests={setProfileInterests}
+                customInterest={customInterest}
+                setCustomInterest={setCustomInterest}
+                addCustomInterest={addCustomInterest}
+                profileSkills={profileSkills}
+                setProfileSkills={setProfileSkills}
+                startWatchingLocation={startWatchingLocation}
+                userCoords={userCoords}
+                saveRecommendationProfile={saveRecommendationProfile}
+                savingProfile={savingProfile}
+                user={user}
+                profileSaved={profileSaved}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </section>
     </main>
   )
