@@ -36,15 +36,7 @@ type Opportunity = {
 }
 
 type V1ListResponse = { total: number; items: V1OpportunityRead[] }
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 type V1RecommendationResponse = { items: Array<{ opportunity: V1OpportunityRead; score: number; reason?: string }> }
-=======
-type V1RecommendationResponse = { items: Array<{ opportunity: V1OpportunityRead; score: number; reason: string }> }
->>>>>>> Stashed changes
-=======
-type V1RecommendationResponse = { items: Array<{ opportunity: V1OpportunityRead; score: number; reason: string }> }
->>>>>>> Stashed changes
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000"
 const MAP_OPPORTUNITY_LIMIT = 100
@@ -308,25 +300,6 @@ function SearchHeaderSection({
 
             <details className="group relative shrink-0">
               <summary className="list-none cursor-pointer rounded-full border border-[#3e648d] bg-[#103558]/80 px-4 py-2 text-sm font-medium text-[#d7ebff] backdrop-blur-sm transition-colors hover:bg-[#184268]">
-                Cause{cause ? `: ${toLabel(cause)}` : ""}
-              </summary>
-              <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-56 rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-3 shadow-xl backdrop-blur-xl">
-                <select
-                  className="w-full rounded-xl border border-[#3d6188] bg-[#153d64] px-3 py-2 text-sm text-[#e4f2ff] outline-none"
-                  value={cause}
-                  onChange={(e) => setCause(e.target.value)}
-                >
-                  {CAUSE_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {toLabel(option)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </details>
-
-            <details className="group relative shrink-0">
-              <summary className="list-none cursor-pointer rounded-full border border-[#3e648d] bg-[#103558]/80 px-4 py-2 text-sm font-medium text-[#d7ebff] backdrop-blur-sm transition-colors hover:bg-[#184268]">
                 Location: {geographyLabel}
               </summary>
               <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-64 rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-3 shadow-xl backdrop-blur-xl">
@@ -438,6 +411,27 @@ function SearchHeaderSection({
             >
               {aiMatching ? "Matching..." : "AI"}
             </button>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2 px-1">
+            {CAUSE_OPTIONS.map((option) => {
+              const isActive = cause === option
+              return (
+                <button
+                  key={option || "all"}
+                  type="button"
+                  onClick={() => setCause(option)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    isActive
+                      ? "border-[#48a3ff]/70 bg-[#1d4b78] text-[#e4f2ff]"
+                      : "border-[#3d6188] bg-[#103558]/70 text-[#9dc2e6] hover:bg-[#184268] hover:text-[#e4f2ff]"
+                  }`}
+                  aria-pressed={isActive}
+                >
+                  {option ? toLabel(option) : "All causes"}
+                </button>
+              )
+            })}
           </div>
 
           {source && (
@@ -915,15 +909,7 @@ export default function ImpactMatchPage() {
       if (!response.ok) throw new Error(`Backend returned ${response.status}`)
       const data: V1RecommendationResponse = await response.json()
       const mapped = data.items.map((item) =>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         mapOpportunityRead(item.opportunity, Math.round(item.score * 100), item.reason ?? ""),
-=======
-        mapOpportunityRead(item.opportunity, Math.round(item.score * 100), item.reason),
->>>>>>> Stashed changes
-=======
-        mapOpportunityRead(item.opportunity, Math.round(item.score * 100), item.reason),
->>>>>>> Stashed changes
       )
       setItems(mapped)
       setSource("AI Matched")
