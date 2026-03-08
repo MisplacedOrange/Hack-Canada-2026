@@ -8,7 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth, type UserPreferences } from "../auth-context"
 import { mapOpportunityRead, type V1OpportunityRead } from "@/lib/utils"
 
-const OpportunityMap = dynamic(() => import("@/components/opportunity-map"), { ssr: false, loading: () => <div className="flex h-[380px] items-center justify-center rounded-xl bg-[#F9F6F2]"><p className="text-sm text-[#999]">Loading map…</p></div> })
+const OpportunityMap = dynamic(() => import("@/components/opportunity-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[380px] items-center justify-center rounded-xl bg-[#0d2744]">
+      <p className="text-sm text-[#9cc1e4]">Loading map…</p>
+    </div>
+  ),
+})
 
 type Opportunity = {
   id: string
@@ -58,12 +65,12 @@ const GEOGRAPHY_OPTIONS = [
 ] as const
 
 const CAUSE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-  environment: { bg: "bg-emerald-100", text: "text-emerald-700", dot: "#059669" },
-  education: { bg: "bg-blue-100", text: "text-blue-700", dot: "#2563eb" },
-  healthcare: { bg: "bg-red-100", text: "text-red-700", dot: "#dc2626" },
-  community: { bg: "bg-yellow-100", text: "text-yellow-700", dot: "#ca8a04" },
-  "animal-care": { bg: "bg-purple-100", text: "text-purple-700", dot: "#9333ea" },
-  "arts-culture": { bg: "bg-pink-100", text: "text-pink-700", dot: "#ec4899" },
+  environment: { bg: "bg-emerald-500/20", text: "text-emerald-200", dot: "#10b981" },
+  education: { bg: "bg-blue-500/20", text: "text-blue-200", dot: "#3b82f6" },
+  healthcare: { bg: "bg-rose-500/20", text: "text-rose-200", dot: "#f43f5e" },
+  community: { bg: "bg-amber-500/20", text: "text-amber-200", dot: "#f59e0b" },
+  "animal-care": { bg: "bg-violet-500/20", text: "text-violet-200", dot: "#a78bfa" },
+  "arts-culture": { bg: "bg-fuchsia-500/20", text: "text-fuchsia-200", dot: "#e879f9" },
 }
 
 function toLabel(value: string): string {
@@ -115,31 +122,22 @@ function matchesInterestFilters(item: Opportunity, filters: string[]): boolean {
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-xl border border-[#b9d5f7] p-4">
+    <div className="animate-pulse rounded-xl border border-[#315781] bg-[#0d2949] p-4">
       <div className="flex items-start justify-between gap-2">
-        <div className="h-5 w-3/5 rounded bg-[#b9d5f7]" />
-        <div className="h-5 w-16 rounded-full bg-[#b9d5f7]" />
+        <div className="h-5 w-3/5 rounded bg-[#20456f]" />
+        <div className="h-5 w-16 rounded-full bg-[#20456f]" />
       </div>
       <div className="mt-2 h-4 w-2/5 rounded bg-[#EDE9E4]" />
       <div className="mt-3 space-y-2">
-        <div className="h-3 w-full rounded bg-[#EDE9E4]" />
-        <div className="h-3 w-4/5 rounded bg-[#EDE9E4]" />
+        <div className="h-3 w-full rounded bg-[#23486f]" />
+        <div className="h-3 w-4/5 rounded bg-[#23486f]" />
       </div>
       <div className="mt-4 flex gap-2">
-        <div className="h-6 w-20 rounded-full bg-[#EDE9E4]" />
-        <div className="h-6 w-16 rounded-full bg-[#EDE9E4]" />
-        <div className="h-6 w-14 rounded-full bg-[#EDE9E4]" />
+        <div className="h-6 w-20 rounded-full bg-[#23486f]" />
+        <div className="h-6 w-16 rounded-full bg-[#23486f]" />
+        <div className="h-6 w-14 rounded-full bg-[#23486f]" />
       </div>
-      <div className="mt-4 h-8 w-32 rounded-full bg-[#b9d5f7]" />
-    </div>
-  )
-}
-
-function SkeletonStat() {
-  return (
-    <div className="animate-pulse rounded-xl border border-[#b9d5f7] bg-white p-4">
-      <div className="h-3 w-20 rounded bg-[#EDE9E4]" />
-      <div className="mt-2 h-7 w-10 rounded bg-[#b9d5f7]" />
+      <div className="mt-4 h-8 w-32 rounded-full bg-[#2f6fd1]" />
     </div>
   )
 }
@@ -150,21 +148,49 @@ function EmptyState({ isError, onRetry }: { isError?: boolean; onRetry: () => vo
       <svg className="h-16 w-16 text-[#9ec4ef]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
         <path d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
       </svg>
-      <h3 className="mt-4 text-lg font-semibold text-[#49423D]">
+      <h3 className="mt-4 text-lg font-semibold text-[#e6f2ff]">
         {isError ? "Something went wrong" : "No opportunities found"}
       </h3>
-      <p className="mt-1 max-w-sm text-sm text-[#4676aa]">
+      <p className="mt-1 max-w-sm text-sm text-[#8fb8df]">
         {isError
           ? "We couldn\u2019t reach the server. Check your connection and try again."
           : "Try broadening your search, changing the cause filter, or adjusting your location."}
       </p>
       <button
         onClick={onRetry}
-        className="mt-4 rounded-full border border-[#9ec4ef] bg-white px-5 py-2 text-sm font-medium hover:bg-[#eaf4ff] transition-colors"
+        className="mt-4 rounded-full border border-[#3a628e] bg-[#0f2d4e] px-5 py-2 text-sm font-medium text-[#d8ebff] transition-colors hover:bg-[#163b62]"
       >
         {isError ? "Retry" : "Reset & search"}
       </button>
     </div>
+  )
+}
+
+function OpportunityMiniMap({
+  latitude,
+  longitude,
+  title,
+  className,
+}: {
+  latitude: number
+  longitude: number
+  title: string
+  className?: string
+}) {
+  const latMin = latitude - 0.01
+  const latMax = latitude + 0.01
+  const lngMin = longitude - 0.015
+  const lngMax = longitude + 0.015
+  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lngMin}%2C${latMin}%2C${lngMax}%2C${latMax}&layer=mapnik&marker=${latitude}%2C${longitude}`
+
+  return (
+    <iframe
+      title={`Map preview for ${title}`}
+      src={src}
+      className={className ?? "h-[150px] w-full"}
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+    />
   )
 }
 
@@ -218,12 +244,12 @@ function SearchHeaderSection({
   const geographyLabel = GEOGRAPHY_OPTIONS.find((option) => option.value === geography)?.label ?? "All places"
 
   return (
-    <section className="sticky top-16 z-[60] border-y border-[#cfe1f7]/70 bg-[#eef6ff]/70 backdrop-blur-xl">
+    <section className="sticky top-16 z-[60] border-y border-[#2f547d]/80 bg-[#071a31]/80 backdrop-blur-xl">
       <div className="mx-auto w-full max-w-[1680px] px-4 py-3 md:px-6 xl:px-8">
-        <div className="rounded-[28px] border border-[#b9d5f7]/70 bg-white/50 px-3 py-3 shadow-sm backdrop-blur-xl">
+        <div className="rounded-[28px] border border-[#34597f] bg-[#0c2a49]/80 px-3 py-3 shadow-[0_14px_36px_rgba(0,0,0,0.35)] backdrop-blur-xl">
           <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="relative min-w-[320px] flex-1">
-              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-[#4676aa]">
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-[#6f9bca]">
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="11" cy="11" r="7" />
                   <path d="M20 20l-3.5-3.5" />
@@ -231,7 +257,7 @@ function SearchHeaderSection({
               </span>
               <input
                 type="search"
-                className="h-11 w-full rounded-full border border-[#9ec4ef]/70 bg-white/85 px-11 pr-16 text-sm text-[#143d73] outline-none transition-all placeholder:text-[#6b8db4] focus:border-[#2f6fd1] focus:ring-2 focus:ring-[#2f6fd1]/15"
+                className="h-11 w-full rounded-full border border-[#3c648f] bg-[#0f3258]/95 px-11 pr-16 text-sm text-[#e4f2ff] outline-none transition-all placeholder:text-[#78a2cf] focus:border-[#48a3ff] focus:ring-2 focus:ring-[#48a3ff]/20"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search opportunities"
@@ -241,7 +267,7 @@ function SearchHeaderSection({
                 <button
                   type="button"
                   onClick={() => setQuery("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-medium text-[#4676aa] transition-colors hover:text-[#143d73]"
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-medium text-[#9dc2e6] transition-colors hover:text-[#e4f2ff]"
                   aria-label="Clear search"
                 >
                   Clear
@@ -250,12 +276,12 @@ function SearchHeaderSection({
             </div>
 
             <details className="group relative shrink-0">
-              <summary className="list-none cursor-pointer rounded-full border border-[#b9d5f7]/80 bg-white/40 px-4 py-2 text-sm font-medium text-[#143d73] backdrop-blur-sm transition-colors hover:bg-white/60">
+              <summary className="list-none cursor-pointer rounded-full border border-[#3e648d] bg-[#103558]/80 px-4 py-2 text-sm font-medium text-[#d7ebff] backdrop-blur-sm transition-colors hover:bg-[#184268]">
                 Cause{cause ? `: ${toLabel(cause)}` : ""}
               </summary>
-              <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-56 rounded-2xl border border-[#b9d5f7]/80 bg-white/95 p-3 shadow-xl backdrop-blur-xl">
+              <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-56 rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-3 shadow-xl backdrop-blur-xl">
                 <select
-                  className="w-full rounded-xl border border-[#d9e8fb] bg-white px-3 py-2 text-sm text-[#143d73] outline-none"
+                  className="w-full rounded-xl border border-[#3d6188] bg-[#153d64] px-3 py-2 text-sm text-[#e4f2ff] outline-none"
                   value={cause}
                   onChange={(e) => setCause(e.target.value)}
                 >
@@ -269,10 +295,10 @@ function SearchHeaderSection({
             </details>
 
             <details className="group relative shrink-0">
-              <summary className="list-none cursor-pointer rounded-full border border-[#b9d5f7]/80 bg-white/40 px-4 py-2 text-sm font-medium text-[#143d73] backdrop-blur-sm transition-colors hover:bg-white/60">
+              <summary className="list-none cursor-pointer rounded-full border border-[#3e648d] bg-[#103558]/80 px-4 py-2 text-sm font-medium text-[#d7ebff] backdrop-blur-sm transition-colors hover:bg-[#184268]">
                 Location: {geographyLabel}
               </summary>
-              <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-64 rounded-2xl border border-[#b9d5f7]/80 bg-white/95 p-3 shadow-xl backdrop-blur-xl">
+              <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-64 rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-3 shadow-xl backdrop-blur-xl">
                 <div className="grid gap-2">
                   {GEOGRAPHY_OPTIONS.map((option) => (
                     <button
@@ -281,8 +307,8 @@ function SearchHeaderSection({
                       onClick={() => setGeography(option.value)}
                       className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
                         geography === option.value
-                          ? "border-[#2f6fd1]/60 bg-[#2f6fd1]/10 text-[#143d73]"
-                          : "border-[#d9e8fb] bg-white text-[#4676aa] hover:bg-[#f5faff]"
+                          ? "border-[#48a3ff]/60 bg-[#1d4b78] text-[#dff0ff]"
+                          : "border-[#3d6188] bg-[#153d64] text-[#9dc2e6] hover:bg-[#1a476f]"
                       }`}
                     >
                       {option.label}
@@ -292,7 +318,7 @@ function SearchHeaderSection({
                 <button
                   type="button"
                   onClick={startWatchingLocation}
-                  className="mt-3 w-full rounded-xl border border-[#d9e8fb] bg-[#f7fbff] px-3 py-2 text-sm font-medium text-[#2f6fd1] transition-colors hover:bg-[#edf7ff]"
+                  className="mt-3 w-full rounded-xl border border-[#3d6188] bg-[#163f66] px-3 py-2 text-sm font-medium text-[#a5d4ff] transition-colors hover:bg-[#1c4e7d]"
                 >
                   {userCoords ? "Refresh live location" : "Use live location"}
                 </button>
@@ -300,16 +326,16 @@ function SearchHeaderSection({
             </details>
 
             <details className="group relative shrink-0">
-              <summary className="list-none cursor-pointer rounded-full border border-[#b9d5f7]/80 bg-white/40 px-4 py-2 text-sm font-medium text-[#143d73] backdrop-blur-sm transition-colors hover:bg-white/60">
+              <summary className="list-none cursor-pointer rounded-full border border-[#3e648d] bg-[#103558]/80 px-4 py-2 text-sm font-medium text-[#d7ebff] backdrop-blur-sm transition-colors hover:bg-[#184268]">
                 Themes{selectedInterestFilters.length ? `: ${selectedInterestFilters.length}` : ""}
               </summary>
-              <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-[320px] rounded-2xl border border-[#b9d5f7]/80 bg-white/95 p-3 shadow-xl backdrop-blur-xl">
+              <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-[320px] rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-3 shadow-xl backdrop-blur-xl">
                 <div className="mb-2 flex items-center justify-between gap-3">
-                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#6b8db4]">Themes</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#8bb3dc]">Themes</p>
                   <button
                     type="button"
                     onClick={() => setSelectedInterestFilters([])}
-                    className="text-xs font-medium text-[#4676aa] hover:text-[#143d73]"
+                    className="text-xs font-medium text-[#95bfe7] hover:text-[#e4f2ff]"
                   >
                     Clear
                   </button>
@@ -322,8 +348,8 @@ function SearchHeaderSection({
                       onClick={() => setSelectedInterestFilters((current) => toggleTag(current, interest))}
                       className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                         selectedInterestFilters.includes(interest)
-                          ? "border-emerald-500/70 bg-emerald-100/40 text-emerald-700"
-                          : "border-[#d9e8fb] bg-white text-[#4676aa] hover:bg-[#f5faff]"
+                          ? "border-emerald-400/70 bg-emerald-500/20 text-emerald-200"
+                          : "border-[#3d6188] bg-[#153d64] text-[#9dc2e6] hover:bg-[#1a476f]"
                       }`}
                     >
                       {toLabel(interest)}
@@ -334,13 +360,13 @@ function SearchHeaderSection({
             </details>
 
             <details className="group relative shrink-0">
-              <summary className="list-none cursor-pointer rounded-full border border-[#b9d5f7]/80 bg-white/40 px-4 py-2 text-sm font-medium text-[#143d73] backdrop-blur-sm transition-colors hover:bg-white/60">
+              <summary className="list-none cursor-pointer rounded-full border border-[#3e648d] bg-[#103558]/80 px-4 py-2 text-sm font-medium text-[#d7ebff] backdrop-blur-sm transition-colors hover:bg-[#184268]">
                 Radius: {radiusKm} km
               </summary>
-              <div className="absolute right-0 top-[calc(100%+10px)] z-[80] w-72 rounded-2xl border border-[#b9d5f7]/80 bg-white/95 p-4 shadow-xl backdrop-blur-xl">
-                <div className="flex items-center justify-between gap-3 text-sm text-[#4676aa]">
+              <div className="absolute right-0 top-[calc(100%+10px)] z-[80] w-72 rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-4 shadow-xl backdrop-blur-xl">
+                <div className="flex items-center justify-between gap-3 text-sm text-[#8bb3dc]">
                   <span>Nearby distance</span>
-                  <span className="font-semibold text-[#143d73]">{radiusKm} km</span>
+                  <span className="font-semibold text-[#e4f2ff]">{radiusKm} km</span>
                 </div>
                 <input
                   type="range"
@@ -356,13 +382,13 @@ function SearchHeaderSection({
             <button
               type="button"
               onClick={resetFilters}
-              className="shrink-0 rounded-full border border-[#b9d5f7]/80 bg-white/30 px-4 py-2 text-sm font-medium text-[#4676aa] transition-colors hover:bg-white/55 hover:text-[#143d73]"
+              className="shrink-0 rounded-full border border-[#3d6188] bg-[#0f3154]/80 px-4 py-2 text-sm font-medium text-[#9dc2e6] transition-colors hover:bg-[#19466f] hover:text-[#e4f2ff]"
             >
               Reset
             </button>
             <button
               onClick={() => void discoverOpportunities()}
-              className="shrink-0 rounded-full border border-[#2f6fd1]/30 bg-[#2f6fd1]/8 px-4 py-2 text-sm font-medium text-[#143d73] transition-colors hover:bg-[#2f6fd1]/14"
+              className="shrink-0 rounded-full border border-[#2f78d4]/50 bg-[#19416c] px-4 py-2 text-sm font-medium text-[#d7ebff] transition-colors hover:bg-[#245585]"
               disabled={loading}
             >
               {loading && !aiMatching ? "Loading..." : "Refresh"}
@@ -371,10 +397,10 @@ function SearchHeaderSection({
               onClick={() => void runAiMatch()}
               className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all ${
                 aiMatching
-                  ? "border border-purple-400/70 bg-purple-100/30 text-purple-700"
+                    ? "border border-violet-400/70 bg-violet-500/20 text-violet-200"
                   : isAiResult
-                    ? "border border-purple-300/70 bg-purple-100/25 text-purple-700"
-                    : "border border-[#9ec4ef]/80 bg-white/30 text-[#143d73] hover:bg-white/55"
+                    ? "border border-violet-300/70 bg-violet-500/15 text-violet-200"
+                    : "border border-[#3d6188] bg-[#0f3154] text-[#d7ebff] hover:bg-[#19466f]"
               }`}
               disabled={loading || !token}
               title={!token ? "Sign in to use AI matching" : undefined}
@@ -384,9 +410,9 @@ function SearchHeaderSection({
           </div>
 
           {source && (
-            <p className="mt-3 px-1 text-xs text-[#4676aa]">
+            <p className="mt-3 px-1 text-xs text-[#8bb3dc]">
               {isAiResult && (
-                <span className="mr-1.5 inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-700">
+                <span className="mr-1.5 inline-flex items-center gap-1 rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-semibold text-violet-200">
                   <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 2l2.09 6.26L20.18 9l-5 4.27L16.82 20 12 16.9 7.18 20l1.64-6.73L3.82 9l6.09-.74Z" />
                   </svg>
@@ -397,7 +423,7 @@ function SearchHeaderSection({
               {userCoords ? ` • Live: ${userCoords.lat.toFixed(2)}, ${userCoords.lng.toFixed(2)}` : ""}
             </p>
           )}
-          {error && <p className="mt-2 px-1 text-sm text-red-700">Could not fetch opportunities: {error}</p>}
+          {error && <p className="mt-2 px-1 text-sm text-rose-300">Could not fetch opportunities: {error}</p>}
         </div>
       </div>
     </section>
@@ -434,13 +460,13 @@ function RecommendationProfileCard({
   profileSaved: boolean
 }) {
   return (
-    <div className="rounded-2xl border border-[#b9d5f7] bg-white p-4 shadow-sm">
-      <h2 className="text-lg font-semibold">Recommendation profile</h2>
-      <p className="mt-1 text-sm text-[#4676aa]">Keep your saved interests separate from search filters so recommendation tuning has its own space.</p>
+    <div className="rounded-2xl border border-[#315781] bg-[linear-gradient(145deg,rgba(13,42,72,0.98),rgba(9,29,53,0.95))] p-4 shadow-[0_16px_38px_rgba(0,0,0,0.3)]">
+      <h2 className="text-lg font-semibold text-[#e7f2ff]">Recommendation profile</h2>
+      <p className="mt-1 text-sm text-[#8bb3dc]">Keep your saved interests separate from search filters so recommendation tuning has its own space.</p>
 
       <div className="mt-4 grid gap-4">
         <div>
-          <label className="text-sm font-medium text-[#143d73]">Interest areas</label>
+          <label className="text-sm font-medium text-[#d5e9ff]">Interest areas</label>
           <div className="mt-2 flex flex-wrap gap-2">
             {INTEREST_SUGGESTIONS.map((interest) => (
               <button
@@ -449,8 +475,8 @@ function RecommendationProfileCard({
                 onClick={() => setProfileInterests((current) => toggleTag(current, interest))}
                 className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                   profileInterests.includes(interest)
-                    ? "border-[#143d73] bg-[#143d73] text-white"
-                    : "border-[#b9d5f7] bg-white text-[#2f6fd1] hover:bg-[#edf7ff]"
+                    ? "border-[#65b2ff] bg-[#1e4f7e] text-[#e7f2ff]"
+                    : "border-[#3d6188] bg-[#163d64] text-[#9ec4eb] hover:bg-[#1c4c79]"
                 }`}
               >
                 {toLabel(interest)}
@@ -461,7 +487,7 @@ function RecommendationProfileCard({
 
         <div className="grid gap-3 md:grid-cols-[1fr_auto] xl:grid-cols-1 2xl:grid-cols-[1fr_auto]">
           <input
-            className="rounded-md border border-[#b9d5f7] px-3 py-2 text-sm"
+            className="rounded-md border border-[#3d6188] bg-[#123456] px-3 py-2 text-sm text-[#e4f2ff]"
             value={customInterest}
             onChange={(e) => setCustomInterest(e.target.value)}
             onKeyDown={(e) => {
@@ -475,7 +501,7 @@ function RecommendationProfileCard({
           <button
             type="button"
             onClick={addCustomInterest}
-            className="rounded-md border border-[#b9d5f7] px-4 py-2 text-sm font-medium text-[#2f6fd1] hover:bg-[#edf7ff]"
+            className="rounded-md border border-[#3d6188] bg-[#153d64] px-4 py-2 text-sm font-medium text-[#b1d8ff] hover:bg-[#1a476f]"
           >
             Add interest
           </button>
@@ -484,7 +510,7 @@ function RecommendationProfileCard({
         {profileInterests.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {profileInterests.map((interest) => (
-              <span key={interest} className="inline-flex items-center gap-1 rounded-full bg-[#143d73] px-3 py-1 text-xs font-medium text-white">
+              <span key={interest} className="inline-flex items-center gap-1 rounded-full bg-[#1f4f7f] px-3 py-1 text-xs font-medium text-[#e7f2ff]">
                 {toLabel(interest)}
                 <button
                   type="button"
@@ -500,21 +526,21 @@ function RecommendationProfileCard({
         )}
 
         <div>
-          <label className="text-sm font-medium text-[#143d73]">Skills you can offer</label>
+          <label className="text-sm font-medium text-[#d5e9ff]">Skills you can offer</label>
           <input
-            className="mt-1 w-full rounded-md border border-[#b9d5f7] px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-[#3d6188] bg-[#123456] px-3 py-2 text-sm text-[#e4f2ff]"
             value={profileSkills}
             onChange={(e) => setProfileSkills(e.target.value)}
             placeholder="teaching, event planning, social media, design"
           />
         </div>
 
-        <div className="rounded-xl border border-[#d9e8fb] bg-[#f7fbff] p-3 text-sm text-[#4676aa]">
+        <div className="rounded-xl border border-[#3b6088] bg-[#0f3154] p-3 text-sm text-[#8bb3dc]">
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={startWatchingLocation}
-              className="rounded-full border border-[#b9d5f7] bg-white px-3 py-1.5 text-xs font-medium text-[#2f6fd1] hover:bg-[#edf7ff]"
+              className="rounded-full border border-[#3d6188] bg-[#163d64] px-3 py-1.5 text-xs font-medium text-[#b1d8ff] hover:bg-[#1a476f]"
             >
               {userCoords ? "Refresh location" : "Allow location"}
             </button>
@@ -531,22 +557,22 @@ function RecommendationProfileCard({
             type="button"
             onClick={() => void saveRecommendationProfile()}
             disabled={savingProfile}
-            className="rounded-full bg-[#143d73] px-5 py-2 text-sm font-medium text-white disabled:opacity-60"
+            className="rounded-full bg-[linear-gradient(135deg,#2ed3ff,#2f6fd1)] px-5 py-2 text-sm font-medium text-white shadow-[0_8px_24px_rgba(27,126,225,0.4)] disabled:opacity-60"
           >
             {savingProfile ? "Saving..." : user ? "Save recommendation profile" : "Sign in to save profile"}
           </button>
         </div>
 
         {profileSaved && (
-          <p className="text-sm text-emerald-600">Recommendation profile saved. AI match will use these preferences now.</p>
+          <p className="text-sm text-emerald-300">Recommendation profile saved. AI match will use these preferences now.</p>
         )}
 
         {user?.preferences && user.preferences.interests.length > 0 && (
-          <p className="flex items-center gap-1.5 text-xs text-emerald-600">
+          <p className="flex items-center gap-1.5 text-xs text-emerald-300">
             <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M20 6L9 17l-5-5" />
             </svg>
-            Using your saved preferences. <a href="/profile" className="underline hover:text-emerald-700">Edit full profile</a>
+            Using your saved preferences. <a href="/profile" className="underline hover:text-emerald-200">Edit full profile</a>
           </p>
         )}
       </div>
@@ -564,10 +590,10 @@ function LocalImpactMapCard({
   startWatchingLocation: () => void
 }) {
   return (
-    <div className="rounded-2xl border border-[#b9d5f7] bg-white p-4">
-      <h2 className="text-lg font-semibold">Local impact map</h2>
-      <p className="mt-1 text-sm text-[#4676aa]">Color-coded pins show nearby opportunities and urgent needs. Click a pin for details.</p>
-      <div className="mt-4 overflow-hidden rounded-xl border border-[#b9d5f7]">
+    <div className="rounded-2xl border border-[#315781] bg-[linear-gradient(145deg,rgba(13,42,72,0.98),rgba(9,29,53,0.95))] p-4">
+      <h2 className="text-lg font-semibold text-[#e7f2ff]">Local impact map</h2>
+      <p className="mt-1 text-sm text-[#8bb3dc]">Color-coded pins show nearby opportunities and urgent needs. Click a pin for details.</p>
+      <div className="mt-4 overflow-hidden rounded-xl border border-[#315781]">
         <OpportunityMap
           items={filteredItems.slice(0, MAP_OPPORTUNITY_LIMIT)}
           className="h-[380px] w-full"
@@ -575,7 +601,7 @@ function LocalImpactMapCard({
           onLocateMe={startWatchingLocation}
         />
       </div>
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#6C645F]">
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#9ec4eb]">
         {Object.entries(CAUSE_COLORS).map(([cause, colors]) => (
           <span key={cause} className="inline-flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full ring-1 ring-black/5" style={{ backgroundColor: colors.dot }} />
@@ -591,9 +617,9 @@ function OpportunityCard({ item, isAiResult }: { item: Opportunity; isAiResult: 
   const causeStyle = CAUSE_COLORS[item.cause] ?? { bg: "bg-gray-100", text: "text-gray-700", dot: "#6b7280" }
 
   return (
-    <article className="rounded-xl border border-[#b9d5f7] p-4 transition-shadow duration-200 hover:shadow-md">
+    <article className="rounded-xl border border-[#315781] bg-[linear-gradient(145deg,rgba(13,42,72,0.98),rgba(9,29,53,0.95))] p-4 shadow-[0_14px_34px_rgba(0,0,0,0.28)] transition-transform duration-300 hover:-translate-y-1">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-base font-semibold leading-tight">{item.title}</h3>
+        <h3 className="text-base font-semibold leading-tight text-[#e7f2ff]">{item.title}</h3>
         <div className="flex shrink-0 items-center gap-1.5">
           {isAiResult && item.match_pct > 0 && (
             <span className={`rounded-full px-2 py-1 text-[11px] font-bold ${
@@ -608,26 +634,26 @@ function OpportunityCard({ item, isAiResult }: { item: Opportunity; isAiResult: 
         </div>
       </div>
 
-      <p className="mt-1 text-sm text-[#4676aa]">{item.organization}</p>
-      {isAiResult && item.match_reason && <p className="mt-1.5 text-xs italic text-purple-600">{item.match_reason}</p>}
-      <p className="mt-2 line-clamp-3 text-sm text-[#4676aa]">{item.description}</p>
+      <p className="mt-1 text-sm text-[#8bb3dc]">{item.organization}</p>
+      {isAiResult && item.match_reason && <p className="mt-1.5 text-xs italic text-violet-200">{item.match_reason}</p>}
+      <p className="mt-2 line-clamp-3 text-sm text-[#9ec4eb]">{item.description}</p>
 
-      <div className="mt-3 flex flex-wrap gap-2 text-xs text-[#6B645E]">
-        <span className="rounded-full bg-[#F3ECE5] px-2 py-1">{item.location}</span>
-        <span className="rounded-full bg-[#F3ECE5] px-2 py-1">{item.schedule}</span>
-        <span className="rounded-full bg-[#F3ECE5] px-2 py-1">Need: {item.volunteers_needed}</span>
-        {isAiResult && item.match_pct > 0 && <span className="rounded-full bg-purple-50 px-2 py-1 text-purple-700">{item.match_pct}%</span>}
+      <div className="mt-3 flex flex-wrap gap-2 text-xs text-[#b8d5f3]">
+        <span className="rounded-full bg-[#153d64] px-2 py-1">{item.location}</span>
+        <span className="rounded-full bg-[#153d64] px-2 py-1">{item.schedule}</span>
+        <span className="rounded-full bg-[#153d64] px-2 py-1">Need: {item.volunteers_needed}</span>
+        {isAiResult && item.match_pct > 0 && <span className="rounded-full bg-violet-500/25 px-2 py-1 text-violet-200">{item.match_pct}%</span>}
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
         {item.skills.slice(0, 4).map((skill) => (
-          <span key={skill} className="rounded-full border border-[#D9D1CA] px-2 py-1 text-[11px]">
+          <span key={skill} className="rounded-full border border-[#3d6188] bg-[#0f3154] px-2 py-1 text-[11px] text-[#b8d5f3]">
             {skill}
           </span>
         ))}
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-[#d9e8fb] bg-[#f7fbff]">
+      <div className="mt-4 overflow-hidden rounded-xl border border-[#315781] bg-[#0f3154]">
         {hasCoordinates(item) ? (
           <OpportunityMiniMap
             latitude={item.latitude}
@@ -636,7 +662,7 @@ function OpportunityCard({ item, isAiResult }: { item: Opportunity; isAiResult: 
             className="h-[150px] w-full"
           />
         ) : (
-          <div className="flex h-[150px] items-center justify-center px-4 text-center text-xs text-[#6C645F]">
+          <div className="flex h-[150px] items-center justify-center px-4 text-center text-xs text-[#9ec4eb]">
             Location map unavailable for this opportunity. Exact coordinates were not provided.
           </div>
         )}
@@ -646,7 +672,7 @@ function OpportunityCard({ item, isAiResult }: { item: Opportunity; isAiResult: 
         href={item.url}
         target="_blank"
         rel="noreferrer"
-        className="mt-4 inline-flex rounded-full bg-[#2f6fd1] px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-[#245cb0]"
+        className="mt-4 inline-flex rounded-full bg-[linear-gradient(135deg,#2ed3ff,#2f6fd1)] px-4 py-2 text-xs font-medium text-white transition-all hover:scale-[1.02]"
       >
         View opportunity
       </a>
@@ -875,7 +901,7 @@ export default function ImpactMatchPage() {
 
 
   return (
-    <main className="min-h-screen bg-[#eef6ff] text-[#143d73]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_12%_8%,rgba(26,124,235,0.2),transparent_34%),radial-gradient(circle_at_88%_78%,rgba(0,205,178,0.14),transparent_32%),linear-gradient(180deg,#07162a_0%,#081b33_45%,#061120_100%)] text-[#d9ebff]">
       <Header />
 
       <SearchHeaderSection
@@ -928,17 +954,17 @@ export default function ImpactMatchPage() {
           />
         </div>
 
-        <div className="mt-4 rounded-2xl border border-[#b9d5f7] bg-white p-4">
-          <h2 className="text-lg font-semibold">
+        <div className="mt-4 rounded-2xl border border-[#315781] bg-[linear-gradient(145deg,rgba(13,42,72,0.98),rgba(9,29,53,0.95))] p-4">
+          <h2 className="text-lg font-semibold text-[#e7f2ff]">
             {isAiResult ? "AI-Matched opportunities" : "Opportunities"}
           </h2>
-          <p className="mt-1 text-sm text-[#4676aa]">
+          <p className="mt-1 text-sm text-[#8bb3dc]">
             {isAiResult
               ? "Ranked by AI based on your interests, skills, and location."
               : "High-need local work and discovered listings from the open web."}
           </p>
           {filteredItems.length > LIST_OPPORTUNITY_LIMIT && (
-            <p className="mt-2 text-xs text-[#6C645F]">
+            <p className="mt-2 text-xs text-[#9ec4eb]">
               Showing {LIST_OPPORTUNITY_LIMIT} cards below. The map still includes up to {Math.min(filteredItems.length, MAP_OPPORTUNITY_LIMIT)} opportunities.
             </p>
           )}
