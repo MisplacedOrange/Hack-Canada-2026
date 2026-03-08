@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+import math
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -72,6 +73,24 @@ def _rerank(
     return scored
 
 
+def _cosine_similarity(left: list[float], right: list[float]) -> float:
+    if not left or not right:
+        return 0.0
+
+    size = min(len(left), len(right))
+    if size == 0:
+        return 0.0
+
+    a = left[:size]
+    b = right[:size]
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = math.sqrt(sum(x * x for x in a))
+    norm_b = math.sqrt(sum(y * y for y in b))
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
+
+
 async def get_recommendations(
     db: AsyncSession,
     preferences: UserPreference,
@@ -82,24 +101,33 @@ async def get_recommendations(
         await update_user_embedding(db, preferences)
         embedding = _coerce_embedding(preferences.embedding)
 
-    # Use pgvector's native <=> (cosine distance) operator for KNN search.
-    # Fetch more candidates than needed so re-ranking with bonus signals
-    # can still surface good results that aren't the closest by embedding alone.
     knn_limit = min(limit * 3, 100)
-    vec_literal = "[" + ",".join(str(v) for v in embedding) + "]"
+    dialect_name = db.get_bind().dialect.name
 
-    stmt = (
-        select(
-            Opportunity,
-            (1 - Opportunity.embedding.cosine_distance(text(f"'{vec_literal}'::vector"))).label("cosine_sim"),
+    if dialect_name == "postgresql":
+        # Use pgvector's native <=> operator for fast KNN in production.
+        vec_literal = "[" + ",".join(str(v) for v in embedding) + "]"
+        stmt = (
+            select(
+                Opportunity,
+                (1 - Opportunity.embedding.cosine_distance(text(f"'{vec_literal}'::vector"))).label("cosine_sim"),
+            )
+            .where(Opportunity.embedding.is_not(None))
+            .order_by(Opportunity.embedding.cosine_distance(text(f"'{vec_literal}'::vector")))
+            .limit(knn_limit)
         )
-        .where(Opportunity.embedding.is_not(None))
-        .order_by(Opportunity.embedding.cosine_distance(text(f"'{vec_literal}'::vector")))
-        .limit(knn_limit)
-    )
-
-    result = await db.execute(stmt)
-    candidates = [(row[0], float(row[1])) for row in result.all()]
+        result = await db.execute(stmt)
+        candidates = [(row[0], float(row[1])) for row in result.all()]
+    else:
+        # SQLite/dev fallback: compute cosine similarity in Python.
+        result = await db.execute(select(Opportunity).where(Opportunity.embedding.is_not(None)))
+        opportunities = list(result.scalars().all())
+        scored = [
+            (opp, _cosine_similarity(embedding, _coerce_embedding(opp.embedding)))
+            for opp in opportunities
+        ]
+        scored.sort(key=lambda item: item[1], reverse=True)
+        candidates = scored[:knn_limit]
 
     reranked = _rerank(candidates, preferences.location_lat, preferences.location_lng)
     return reranked[:limit]
