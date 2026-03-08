@@ -37,7 +37,11 @@ type Opportunity = {
 
 type V1ListResponse = { total: number; items: V1OpportunityRead[] }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 type V1RecommendationResponse = { items: Array<{ opportunity: V1OpportunityRead; score: number; reason?: string }> }
+=======
+type V1RecommendationResponse = { items: Array<{ opportunity: V1OpportunityRead; score: number; reason: string }> }
+>>>>>>> Stashed changes
 =======
 type V1RecommendationResponse = { items: Array<{ opportunity: V1OpportunityRead; score: number; reason: string }> }
 >>>>>>> Stashed changes
@@ -912,7 +916,11 @@ export default function ImpactMatchPage() {
       const data: V1RecommendationResponse = await response.json()
       const mapped = data.items.map((item) =>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         mapOpportunityRead(item.opportunity, Math.round(item.score * 100), item.reason ?? ""),
+=======
+        mapOpportunityRead(item.opportunity, Math.round(item.score * 100), item.reason),
+>>>>>>> Stashed changes
 =======
         mapOpportunityRead(item.opportunity, Math.round(item.score * 100), item.reason),
 >>>>>>> Stashed changes

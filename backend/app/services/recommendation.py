@@ -3,6 +3,10 @@ from __future__ import annotations
 from datetime import date
 import math
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+import re
+>>>>>>> Stashed changes
 =======
 import re
 >>>>>>> Stashed changes
@@ -190,6 +194,7 @@ def _score_opportunity(
     bounded_score = max(0.0, min(1.0, final_score))
     reason = _build_reason(opportunity, interest_matches, skill_matches, proximity_score, demand_score)
     return bounded_score, reason
+<<<<<<< Updated upstream
 
 
 def _cosine_similarity(left: list[float], right: list[float]) -> float:
@@ -208,6 +213,8 @@ def _cosine_similarity(left: list[float], right: list[float]) -> float:
     if norm_a == 0 or norm_b == 0:
         return 0.0
     return dot / (norm_a * norm_b)
+=======
+>>>>>>> Stashed changes
 
 
 async def get_recommendations(
@@ -220,6 +227,7 @@ async def get_recommendations(
         await update_user_embedding(db, preferences)
         embedding = _coerce_embedding(preferences.embedding)
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     knn_limit = min(limit * 3, 100)
     dialect_name = db.get_bind().dialect.name
@@ -249,11 +257,16 @@ async def get_recommendations(
         scored.sort(key=lambda item: item[1], reverse=True)
         candidates = scored[:knn_limit]
 =======
+=======
+>>>>>>> Stashed changes
     stmt = select(Opportunity)
     result = await db.execute(stmt)
     opportunities = list(result.scalars().all())
     if not opportunities:
         return []
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
     await _ensure_opportunity_embeddings(db, opportunities)
