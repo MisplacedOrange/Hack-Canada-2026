@@ -25,9 +25,9 @@ function getAppBaseUrl() {
 
 type Auth0ClientCtor = typeof import("@auth0/nextjs-auth0/server")["Auth0Client"]
 
-function buildAuth0Client(Auth0Client: Auth0ClientCtor) {
+function buildAuth0Client(Auth0Client: Auth0ClientCtor, requestOrigin?: string) {
   const domain = getAuth0Domain()
-  const appBaseUrl = getAppBaseUrl()
+  const appBaseUrl = requestOrigin || getAppBaseUrl()
   return new Auth0Client({
     domain,
     secret: process.env.AUTH0_SECRET,
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { Auth0Client } = await import("@auth0/nextjs-auth0/server")
-    const auth0 = buildAuth0Client(Auth0Client)
+    const auth0 = buildAuth0Client(Auth0Client, request.nextUrl.origin)
     const session = await auth0.getSession(request)
     if (!session || !session.user) {
       return NextResponse.json({ user: null })

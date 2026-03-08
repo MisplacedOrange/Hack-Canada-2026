@@ -36,10 +36,18 @@ Frontend Auth0 environment variables (`frontend/.env.local`):
 - `AUTH0_SECRET`
 - `AUTH0_CLIENT_ID`
 - `AUTH0_CLIENT_SECRET`
+- `AUTH0_DOMAIN` or `AUTH0_ISSUER_BASE_URL`
 - `AUTH0_ISSUER_BASE_URL`
 - `AUTH0_AUDIENCE`
 - `AUTH0_SCOPE` (recommended: `openid profile email`)
 - `APP_BASE_URL` (for example `http://localhost:3000`)
+
+Auth0 dashboard values for local development:
+- Application type: `Regular Web Application`
+- Allowed Callback URLs: `http://localhost:3000/api/auth/callback, http://localhost:3001/api/auth/callback`
+- Allowed Logout URLs: `http://localhost:3000, http://localhost:3001`
+- Allowed Web Origins: `http://localhost:3000, http://localhost:3001`
+- API Identifier: `http://localhost:8000`
 
 # Contributors
 - Dinesh Sinnathamby

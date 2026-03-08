@@ -219,52 +219,41 @@ function OpportunityMiniMap({
 
 function SearchHeaderSection({
   loading,
-  aiMatching,
   isAiResult,
-  token,
   query,
   setQuery,
   cause,
   setCause,
-  radiusKm,
-  setRadiusKm,
   geography,
   setGeography,
-  resetFilters,
   startWatchingLocation,
   userCoords,
   availableInterestFilters,
   selectedInterestFilters,
   setSelectedInterestFilters,
   discoverOpportunities,
-  runAiMatch,
   source,
   error,
 }: {
   loading: boolean
-  aiMatching: boolean
   isAiResult: boolean
-  token: string | null
   query: string
   setQuery: (value: string) => void
   cause: string
   setCause: (value: string) => void
-  radiusKm: number
-  setRadiusKm: (value: number) => void
   geography: (typeof GEOGRAPHY_OPTIONS)[number]["value"]
   setGeography: (value: (typeof GEOGRAPHY_OPTIONS)[number]["value"]) => void
-  resetFilters: () => void
   startWatchingLocation: () => void
   userCoords: { lat: number; lng: number } | null
   availableInterestFilters: string[]
   selectedInterestFilters: string[]
   setSelectedInterestFilters: React.Dispatch<React.SetStateAction<string[]>>
   discoverOpportunities: () => Promise<void>
-  runAiMatch: () => Promise<void>
   source: string
   error: string | null
 }) {
   const geographyLabel = GEOGRAPHY_OPTIONS.find((option) => option.value === geography)?.label ?? "All places"
+  const [openPanel, setOpenPanel] = useState<"location" | "themes" | null>(null)
 
   return (
     <section className="sticky top-16 isolate z-[80] border-y border-[#2f547d]/80 bg-[#071a31]/80 backdrop-blur-xl">
@@ -298,17 +287,30 @@ function SearchHeaderSection({
               )}
             </div>
 
-            <details className="group relative shrink-0">
-              <summary className="list-none cursor-pointer rounded-full border border-[#3e648d] bg-[#103558]/80 px-4 py-2 text-sm font-medium text-[#d7ebff] backdrop-blur-sm transition-colors hover:bg-[#184268]">
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setOpenPanel((current) => (current === "location" ? null : "location"))}
+                className={`rounded-full border px-4 py-2 text-sm font-medium backdrop-blur-sm transition-colors ${
+                  openPanel === "location"
+                    ? "border-[#48a3ff]/60 bg-[#1d4b78] text-[#dff0ff]"
+                    : "border-[#3e648d] bg-[#103558]/80 text-[#d7ebff] hover:bg-[#184268]"
+                }`}
+                aria-expanded={openPanel === "location"}
+              >
                 Location: {geographyLabel}
-              </summary>
-              <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-64 rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-3 shadow-xl backdrop-blur-xl">
+              </button>
+              {openPanel === "location" && (
+                <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-64 rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-3 shadow-xl backdrop-blur-xl">
                 <div className="grid gap-2">
                   {GEOGRAPHY_OPTIONS.map((option) => (
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setGeography(option.value)}
+                      onClick={() => {
+                        setGeography(option.value)
+                        setOpenPanel(null)
+                      }}
                       className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
                         geography === option.value
                           ? "border-[#48a3ff]/60 bg-[#1d4b78] text-[#dff0ff]"
@@ -321,24 +323,41 @@ function SearchHeaderSection({
                 </div>
                 <button
                   type="button"
-                  onClick={startWatchingLocation}
+                  onClick={() => {
+                    startWatchingLocation()
+                    setOpenPanel(null)
+                  }}
                   className="mt-3 w-full rounded-xl border border-[#3d6188] bg-[#163f66] px-3 py-2 text-sm font-medium text-[#a5d4ff] transition-colors hover:bg-[#1c4e7d]"
                 >
                   {userCoords ? "Refresh live location" : "Use live location"}
                 </button>
               </div>
-            </details>
+              )}
+            </div>
 
-            <details className="group relative shrink-0">
-              <summary className="list-none cursor-pointer rounded-full border border-[#3e648d] bg-[#103558]/80 px-4 py-2 text-sm font-medium text-[#d7ebff] backdrop-blur-sm transition-colors hover:bg-[#184268]">
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setOpenPanel((current) => (current === "themes" ? null : "themes"))}
+                className={`rounded-full border px-4 py-2 text-sm font-medium backdrop-blur-sm transition-colors ${
+                  openPanel === "themes"
+                    ? "border-[#48a3ff]/60 bg-[#1d4b78] text-[#dff0ff]"
+                    : "border-[#3e648d] bg-[#103558]/80 text-[#d7ebff] hover:bg-[#184268]"
+                }`}
+                aria-expanded={openPanel === "themes"}
+              >
                 Themes{selectedInterestFilters.length ? `: ${selectedInterestFilters.length}` : ""}
-              </summary>
-              <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-[320px] rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-3 shadow-xl backdrop-blur-xl">
+              </button>
+              {openPanel === "themes" && (
+                <div className="absolute left-0 top-[calc(100%+10px)] z-[80] w-[320px] rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-3 shadow-xl backdrop-blur-xl">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#8bb3dc]">Themes</p>
                   <button
                     type="button"
-                    onClick={() => setSelectedInterestFilters([])}
+                    onClick={() => {
+                      setSelectedInterestFilters([])
+                      setOpenPanel(null)
+                    }}
                     className="text-xs font-medium text-[#95bfe7] hover:text-[#e4f2ff]"
                   >
                     Clear
@@ -361,55 +380,15 @@ function SearchHeaderSection({
                   ))}
                 </div>
               </div>
-            </details>
+              )}
+            </div>
 
-            <details className="group relative shrink-0">
-              <summary className="list-none cursor-pointer rounded-full border border-[#3e648d] bg-[#103558]/80 px-4 py-2 text-sm font-medium text-[#d7ebff] backdrop-blur-sm transition-colors hover:bg-[#184268]">
-                Radius: {radiusKm} km
-              </summary>
-              <div className="absolute right-0 top-[calc(100%+10px)] z-[80] w-72 rounded-2xl border border-[#3d6188] bg-[#0d2f52]/95 p-4 shadow-xl backdrop-blur-xl">
-                <div className="flex items-center justify-between gap-3 text-sm text-[#8bb3dc]">
-                  <span>Nearby distance</span>
-                  <span className="font-semibold text-[#e4f2ff]">{radiusKm} km</span>
-                </div>
-                <input
-                  type="range"
-                  min={5}
-                  max={100}
-                  value={radiusKm}
-                  onChange={(e) => setRadiusKm(Number(e.target.value))}
-                  className="mt-4 w-full accent-[#2f6fd1]"
-                />
-              </div>
-            </details>
-
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="shrink-0 rounded-full border border-[#3d6188] bg-[#0f3154]/80 px-4 py-2 text-sm font-medium text-[#9dc2e6] transition-colors hover:bg-[#19466f] hover:text-[#e4f2ff]"
-            >
-              Reset
-            </button>
             <button
               onClick={() => void discoverOpportunities()}
               className="shrink-0 rounded-full border border-[#2f78d4]/50 bg-[#19416c] px-4 py-2 text-sm font-medium text-[#d7ebff] transition-colors hover:bg-[#245585]"
               disabled={loading}
             >
-              {loading && !aiMatching ? "Loading..." : "Refresh"}
-            </button>
-            <button
-              onClick={() => void runAiMatch()}
-              className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                aiMatching
-                    ? "border border-violet-400/70 bg-violet-500/20 text-violet-200"
-                  : isAiResult
-                    ? "border border-violet-300/70 bg-violet-500/15 text-violet-200"
-                    : "border border-[#3d6188] bg-[#0f3154] text-[#d7ebff] hover:bg-[#19466f]"
-              }`}
-              disabled={loading || !token}
-              title={!token ? "Sign in to use AI matching" : undefined}
-            >
-              {aiMatching ? "Matching..." : "AI"}
+              {loading ? "Loading..." : "Refresh"}
             </button>
           </div>
 
@@ -934,25 +913,19 @@ export default function ImpactMatchPage() {
 
       <SearchHeaderSection
         loading={loading}
-        aiMatching={aiMatching}
         isAiResult={isAiResult}
-        token={token}
         query={query}
         setQuery={setQuery}
         cause={cause}
         setCause={setCause}
-        radiusKm={radiusKm}
-        setRadiusKm={setRadiusKm}
         geography={geography}
         setGeography={setGeography}
-        resetFilters={resetFilters}
         startWatchingLocation={startWatchingLocation}
         userCoords={userCoords}
         availableInterestFilters={availableInterestFilters}
         selectedInterestFilters={selectedInterestFilters}
         setSelectedInterestFilters={setSelectedInterestFilters}
         discoverOpportunities={discoverOpportunities}
-        runAiMatch={runAiMatch}
         source={source}
         error={error}
       />

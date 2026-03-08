@@ -24,9 +24,9 @@ function getAppBaseUrl() {
 
 type Auth0ClientCtor = typeof import("@auth0/nextjs-auth0/server")["Auth0Client"]
 
-function buildAuth0Client(Auth0Client: Auth0ClientCtor) {
+function buildAuth0Client(Auth0Client: Auth0ClientCtor, requestOrigin?: string) {
   const domain = getAuth0Domain()
-  const appBaseUrl = getAppBaseUrl()
+  const appBaseUrl = requestOrigin || getAppBaseUrl()
   return new Auth0Client({
     domain,
     secret: process.env.AUTH0_SECRET,
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 
   // Lazy-import to avoid build-time errors when env vars are missing
   const { Auth0Client } = await import("@auth0/nextjs-auth0/server")
-  const auth0 = buildAuth0Client(Auth0Client)
+  const auth0 = buildAuth0Client(Auth0Client, req.nextUrl.origin)
 
   // useUser() expects a profile route that returns user JSON or 204 when anonymous.
   if (req.nextUrl.pathname.endsWith("/profile")) {
