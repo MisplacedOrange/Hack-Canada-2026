@@ -20,7 +20,9 @@ export function Header() {
     if (!isHomePage) return
 
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
+      const cautionEl = document.getElementById('caution-section')
+      const threshold = cautionEl ? cautionEl.offsetTop : 50
+      setIsScrolled(window.scrollY >= threshold)
     }
 
     window.addEventListener("scroll", handleScroll)

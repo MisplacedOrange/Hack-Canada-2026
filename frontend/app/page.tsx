@@ -1,7 +1,9 @@
 "use client"
 
+import { useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { motion, useScroll, useTransform } from "framer-motion"
 import { useAuth } from "./auth-context"
 import { Header } from "@/components/header"
 
@@ -66,55 +68,90 @@ const STATS = [
 export default function LandingPage() {
   const { user } = useAuth()
 
+  const panelRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({ target: panelRef, offset: ["start start", "end end"] })
+
+  const headlineOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0])
+  const missionOpacity = useTransform(scrollYProgress, [0.15, 0.35, 0.55], [0, 1, 1])
+  const missionY = useTransform(scrollYProgress, [0.15, 0.35], [40, 0])
+  const blackOpacity = useTransform(scrollYProgress, [0.89, 0.99], [0, 0.9])
+
   return (
     <main className="min-h-screen bg-[#eef6ff] text-[#143d73]">
       <Header />
 
-      {/* Hero */}
-      <section className="relative h-screen overflow-hidden">
-        {/* Background image */}
-        <img
-          src="/assets/images/mountain.webp"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover object-top"
-        />
+      {/* Unified Hero + Transition — one section, one mountain image, one sticky viewport */}
+      <section ref={panelRef} style={{ height: "300vh", position: "relative" }}>
+        <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden" }}>
+          {/* Single mountain image */}
+          <img
+            src="/assets/images/mountain.webp"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover object-top"
+          />
 
-        {/* Overlay — top for navbar readability, bottom for headline readability */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
 
-        {/* SUMMIT — white, translucent, fades at bottom, above center */}
-        <div className="pointer-events-none absolute inset-0 z-20 flex select-none flex-col items-center justify-center pb-[35vh]">
-          <span
-            className="block w-full text-center leading-none text-white opacity-20"
-            style={{
-              fontSize: "22vw",
-              letterSpacing: "-0.04em",
-              fontFamily: "sans-serif",
-              fontWeight: 900,
-              WebkitMaskImage: "linear-gradient(to bottom, black 30%, transparent 100%)",
-              maskImage: "linear-gradient(to bottom, black 30%, transparent 100%)",
-            }}
+          {/* SUMMIT watermark */}
+          <motion.div
+            className="pointer-events-none absolute inset-0 z-20 flex select-none flex-col items-center justify-center pb-[35vh]"
+            style={{ opacity: headlineOpacity }}
           >
-            SUMMIT
-          </span>
-        </div>
+            <span
+              className="block w-full text-center leading-none text-white opacity-20"
+              style={{
+                fontSize: "22vw",
+                letterSpacing: "-0.04em",
+                fontFamily: "sans-serif",
+                fontWeight: 900,
+                WebkitMaskImage: "linear-gradient(to bottom, black 30%, transparent 100%)",
+                maskImage: "linear-gradient(to bottom, black 30%, transparent 100%)",
+              }}
+            >
+              SUMMIT
+            </span>
+          </motion.div>
 
-        {/* Bottom-left headline */}
-        <div className="absolute bottom-0 left-0 z-30 px-8 pb-14 md:px-16 lg:px-24">
-          <h1
-            className="max-w-3xl text-4xl leading-tight text-white md:text-5xl lg:text-6xl"
-            style={{ fontFamily: "'Times New Roman', Times, serif", fontStyle: "italic" }}
+          {/* Headline — fades out as mission fades in */}
+          <motion.div
+            className="absolute bottom-0 left-0 z-30 px-8 pb-14 md:px-16 lg:px-24"
+            style={{ opacity: headlineOpacity }}
           >
-            Climb Higher
-            <br />
-            Reach your <b>SUMMIT</b>.
-          </h1>
+            <h1
+              className="max-w-3xl text-4xl leading-tight text-white md:text-5xl lg:text-6xl"
+              style={{ fontFamily: "'Times New Roman', Times, serif", fontStyle: "italic" }}
+            >
+              Climb Higher
+              <br />
+              Reach your <b>SUMMIT</b>.
+            </h1>
+          </motion.div>
+
+          {/* Mission statement — fades in bottom-left */}
+          <motion.div
+            className="absolute bottom-0 left-0 z-30 px-8 pb-14 md:px-16 lg:px-24"
+            style={{ opacity: missionOpacity, y: missionY }}
+          >
+            <p
+              className="max-w-2xl text-lg leading-relaxed text-white md:text-xl"
+              style={{ fontFamily: "'Times New Roman', Times, serif", fontStyle: "italic" }}
+            >
+              We believe every person has the power to create change. Summit connects volunteers with the opportunities that matter most — in their community, on their schedule, aligned with their passion.
+            </p>
+          </motion.div>
+
+          {/* Black dissolve overlay */}
+          <motion.div
+            className="absolute inset-0 z-40 bg-black"
+            style={{ opacity: blackOpacity }}
+          />
         </div>
       </section>
 
       {/* Feature image divider with caution tape */}
-      <section className="relative min-h-[480px] overflow-hidden">
+      <section id="caution-section" className="relative min-h-[480px] overflow-hidden">
         {/* Full-width background image */}
         <img
           src="/assets/images/cabin.webp"
@@ -171,10 +208,10 @@ export default function LandingPage() {
         <div
           className="absolute z-10 overflow-hidden"
           style={{
-            top: "15%",
+            top: "16%",
             left: "-50%",
             width: "200%",
-            transform: "translateY(-50%) rotate(-12deg)",
+            transform: "translateY(-50%) rotate(-5deg)",
             height: "42px",
             background: "#FFD700",
             boxShadow: "0 4px 24px rgba(0,0,0,0.45)",
