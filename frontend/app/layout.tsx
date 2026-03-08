@@ -48,7 +48,7 @@ export default function RootLayout({
         />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:wght@400&display=swap" />
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased overflow-x-hidden">
         <Auth0ClientProvider>
           <AuthProvider>{children}</AuthProvider>
         </Auth0ClientProvider>
